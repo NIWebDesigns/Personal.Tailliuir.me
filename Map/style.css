@@ -1,0 +1,168 @@
+html,
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  background: #198786;
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  width: 100px;
+  position: relative;
+}
+
+#header {
+  padding: 50px 0;
+  text-align: center;
+  background-color: #ffce5d;
+}
+
+#footer {
+  color: #222;
+  background-color: #ffce5d;
+}
+
+#footer h4 {
+  width: 1200px;
+  padding: 40px 0;
+  margin: 0 auto;
+  font-size: 1em;
+  text-align: center;
+}
+
+#country {
+  font-size: 2.5em;
+  color: #f6f792;
+}
+
+#header .information {
+  font-size: 3em;
+  color: #c0442c;
+  font-weight: 600;
+}
+
+h1 {
+  margin: 0;
+  font-family: "Permanent Marker", cursive;
+  font-size: 4.5em;
+  color: #222;
+}
+
+.number-section {
+  margin: 0;
+  font-size: 2.5em;
+  color: #198786;
+  text-shadow: 2px 1px #333;
+}
+
+.subheader {
+  position: relative;
+  top: -10px;
+  padding: 0;
+  margin: 0;
+  font-family: "Covered By Your Grace", cursive;
+  font-size: 40px;
+}
+
+#header-info {
+  width: 1000px;
+  margin: 0 auto;
+}
+
+#pie-chart {
+  display: inline-block;
+  vertical-align: top;
+}
+
+#pie-chart svg {
+  position: relative;
+  top: -30px;
+}
+
+#statistic {
+  display: inline-block;
+  vertical-align: top;
+}
+
+#map {
+  padding-bottom: 30px;
+  text-align: center;
+}
+
+#map .full-map svg {
+  width: 100%;
+  height: 660px;
+  margin-top: 10px;
+}
+
+.numbers {
+  display: inline-block;
+  margin-left: 10px;
+  line-height: 1em;
+  text-align: center;
+  vertical-align: super;
+  font-size: 40px;
+}
+
+.numbers a {
+  display: block;
+  color: #198786;
+  text-shadow: 2px 1px #333;
+}
+
+a:visited,
+a {
+  color: #c0442c;
+}
+
+#map path:hover {
+  fill: #efb1b1 !important;
+}
+
+#country-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffce5d;
+  background-color: rgb(26 135 134);
+  padding: 20px 0 0;
+  border-radius: 5px;
+  text-align: center;
+  height: 28px;
+}
+
+/* Mobile view adjustments */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 3em;
+  }
+
+  .subheader {
+    font-size: 30px;
+  }
+
+  #header {
+    padding: 30px 0;
+  }
+
+  #header-info {
+    width: 90%;
+    margin: 0 auto;
+  }
+
+  .number-section {
+    font-size: 2em;
+  }
+
+  .numbers a {
+    font-size: 30px;
+  }
+
+  #map .full-map svg {
+    height: 400px;
+  }
+
+  img {
+    width: 80px;
+  }
+}

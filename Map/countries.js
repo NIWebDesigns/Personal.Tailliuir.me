@@ -1,0 +1,17 @@
+countries = [
+  "ireland",
+  "britain",
+  "france",
+  "italy",
+  "netherlands",
+  "greece",
+  "emirates",
+  "poland",
+  "portugal",
+  "malta",
+  "ulster",
+  "switzerland",
+  "usa",
+  "ulster",
+  "germany",
+];

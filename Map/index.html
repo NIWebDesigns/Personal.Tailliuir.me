@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+  <meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+	<meta http-equiv="Pragma" content="no-cache">
+	<meta http-equiv="Expires" content="0">
+    
+    <title>Matthew Taylor | Map</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Covered+By+Your+Grace|Permanent+Marker"
+      rel="stylesheet"
+    />
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <link href="favicon.ico" rel="icon" type="image/png" />
+    <script src="d3.v4.min.js"></script>
+    <script src="countries.js"></script>
+    <script src="script.js"></script>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta property="og:title" content="Countries I have visited" />
+    <meta property="og:description" content="Interactive map of countries visited by Matthew Taylor" />
+    <meta property="og:image" content="https://glauberramos.github.io/visited-countries/backpack.png" />
+    <meta property="og:url" content="https://glauberramos.github.io/visited-countries" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="https://glauberramos.github.io/visited-countries" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Interactive map of countries visited by Matthew Taylor, showcasing travel experiences around the world." />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Countries I have visited",
+        "description": "Interactive map of countries visited by Matthew Taylor",
+        "author": {
+          "@type": "Person",
+          "name": "Matthew Taylor",
+          "url": "https://niwebdesigns.co.uk/Map%20Website/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header id="header">
+      <img src="backpack.png" alt="Backpack icon" title="Backpack icon" />
+      <h1>Matthew's</h1>
+      <h2 class="subheader">visited countries</h2>
+      <div id="header-info">
+        <div id="statistic">
+          <div class="number-section">
+            <span id="number-countries" class="information"></span>
+
+            <span class="numbers">
+              <span id="globe-percent"></span>
+              <span>of</span>
+              <a target="_blank" href="https://en.wikipedia.org/wiki/Member_states_of_the_United_Nations ">
+                193
+              </a>
+            </span>
+
+            <center>
+		    <br>
+              <a href="https://www.polarsteps.com/itsmat32143" class="link"><h2 class="subheader">Pictures - (Polarsteps)</h2></a>
+		    <h2 class="subheader">Or</h2>
+              <a href="https://wanderlog.com/u/itsmat32143" class="link"><h2 class="subheader">Plans - (Wanderlog)</h2></a>
+		    <h2 class="subheader">Or</h2>
+              <a href="https://disk.yandex.com/d/GHe72qqFnJktBA" class="link"><h2 class="subheader">Cloud Pictures</h2></a>
+            </center>
+
+          </div>
+        </div>
+      </div>
+    </header>
+    <main id="map">
+      <div id="country-name"></div>
+      <div id="svg" class="full-map"></div>
+    </main>
+  </body>
+</html>
