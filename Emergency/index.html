@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Contact Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            text-align: center;
+        }
+        header {
+            background-color: #007BFF; /* Bright blue */
+            padding: 20px;
+            color: white;
+            border-bottom: 5px solid #0056b3; /* Darker blue */
+        }
+        section {
+            background-color: #fff;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+        }
+        footer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745; /* Green */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838; /* Darker green */
+        }
+        .link-button {
+            background-color: #007BFF; /* Link Button Color */
+        }
+        .link-button:hover {
+            background-color: #0056b3; /* Darker Blue */
+        }
+        a {
+            text-decoration: none;
+            color: white; /* White text for links */
+        }
+        @media print {
+            body {
+                zoom: 80%; /* Adjust content to fit A4 page */
+            }
+        }
+    </style>
+    <script>
+        function openWithPassword() {
+            var password = prompt("Please enter the password:");
+            if (password === "06112000") { // Set the password here
+                window.open("https://traklink.trutrakpro.co.uk?Token=3AE819B6-B7A5-4B5A-A16E-6CD1DFF9788C", "_blank");
+            } else {
+                alert("Incorrect password");
+            }
+        }
+    </script>
+</head>
+<body>
+
+<header>
+    <h1>Emergency Contact Information</h1>
+</header>
+
+<section>
+    <h2>Personal Information</h2>
+    <p><strong>Name:</strong>Matthew Alexander Taylor</p>
+    <p><strong>Address:</strong>47 Dunsy Way, Comber, Newtownards BT23 5DG</p>
+    <p><strong>Phone Number:</strong>07471097569 + 07436976885</p>
+    <p><strong>Email:</strong>itsmat@duck.com</p>
+    <p><strong>Health and Care Number (HCN):</strong>3777581402</p>
+    <p><strong>Kingsbridge Private Hospital Patient ID:</strong>3241367</p>
+    <p><strong>Blood Type:</strong>Unknown</p>
+</section>
+
+<section>
+    <h2>Emergency Contacts</h2>
+    <p><strong>Andrew Taylor:</strong> Father, 07471197674</p>
+    <p><strong>Heidi Taylor:</strong> Mother, 07568448230</p>
+</section>
+
+<section>
+    <h2>Primary Care Physician</h2>
+    <p><strong>Name:</strong>Dr. W MCILROY</p>
+    <p><strong>Contact:</strong>02891816333</p>
+    <p><strong>Address:</strong>1 Church St, Newtownards BT23 4FH</p>
+</section>
+
+<section> 
+    <h2>Wapp - Pay as You Go - Travel Insurance</h2>
+
+    <button class="link-button" onclick="window.open('Wapp - Pay as You Go - Travel Insurance/1.pdf', '_blank')">Travel Insurance policy wording</button>
+
+    <br>
+
+    <button class="link-button" onclick="window.open('Wapp - Pay as You Go - Travel Insurance/2.pdf', '_blank')">SCHEDULE OF COVER</button>
+
+    <br>
+
+    <button class="link-button" onclick="window.open('Wapp - Pay as You Go - Travel Insurance/3.pdf', '_blank')">Terms of Business</button>
+
+    <br>
+
+    <button class="link-button" onclick="window.open('Wapp - Pay as You Go - Travel Insurance/4.pdf', '_blank')">Medical Conditions Declared for: Rebecca Ashe - AGE: 30</button>
+
+</section>
+
+<section>
+    <h2>Admiral - Annual - Travel Insurance</h2>
+    <button class="link-button" onclick="window.open('your_travel_insurance_link', '_blank')">Admiral - Annual - Travel Insurance</button>
+<br>
+<button class="link-button" onclick="window.open(NIWebDesigns.co.uk\Myself\Emergency\Wapp - Pay as You Go - Travel Insurance\README.md)">Wapp - Pay as You Go - Travel Insurance</button>
+</section>
+
+<section>
+    <h2>Travel Information</h2>
+    <p><strong>Emergency Contacts in Destination:</strong> Local hotel manager, embassy.</p>
+    <p><strong>Local Emergency Numbers:</strong> [Insert country-specific emergency numbers]</p>
+    <p><strong>Embassy Contact Information:</strong> [Embassy details for the country you're visiting]</p>
+</section>
+
+<section>
+    <h2>GPS Information</h2>
+    <button class="link-button" onclick="window.open('your_personal_gps_link', '_blank')">Personal GPS</button>
+    <button class="link-button" onclick="openWithPassword()">Vehicle GPS (Password Protected)</button>
+</section>
+
+<section>
+    <h2>Additional Important Information</h2>
+    <p><strong>Organ Donor:</strong> No</p>
+</section>
+
+<section>
+    <h2>Important Personal Preferences</h2>
+    <p><strong>Preferred Language:</strong>English</p>
+</section>
+
+<section>
+    <h2>Print Information</h2>
+    <button onclick="window.print()">Print this Information</button>
+</section>
+
+<footer>
+    <p>Made by <a href="https://niwebdesigns.co.uk" target="_blank" style="color: white;">niwebdesigns.co.uk</a></p>
+</footer>
+
+</body>
+</html>

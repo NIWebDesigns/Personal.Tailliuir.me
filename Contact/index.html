@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Matthew Taylor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMW74luI/Tf6rwD5y/pT4jdz+GiYwny6aCkVjHg" crossorigin="anonymous">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center; /* Center all content */
+        }
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center the profile image and text */
+            margin-bottom: 30px;
+        }
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            object-fit: cover;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .profile-info h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 600;
+        }
+        .profile-info p {
+            font-size: 16px;
+            color: #777;
+            margin: 8px 0 0;
+        }
+        .contact-info, .social-media, .bank-details, .send-money-box {
+            margin-bottom: 30px;
+        }
+        h2 {
+            font-size: 24px;
+            font-weight: 500;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: #007BFF;
+            text-align: center;
+        }
+        .contact-info p, .bank-details p {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        .social-media-icons {
+            display: flex;
+            justify-content: center; /* Center social icons */
+            gap: 15px;
+            font-size: 28px;
+            margin-top: 10px;
+        }
+        .social-media-icons a {
+            color: #007BFF;
+            transition: color 0.3s ease;
+            text-decoration: none;
+        }
+        .social-media-icons a:hover {
+            color: #0056b3;
+        }
+        .bank-details {
+            background-color: #f9f9f9;
+            padding: 20px;
+            font-size: 16px;
+            color: #555;
+            text-align: center; /* Center bank details text */
+        }
+        .send-money-box input[type="number"] {
+            width: 100%;
+            max-width: 300px; /* Limit width for better centering */
+            padding: 10px;
+            font-size: 18px;
+            margin-bottom: 20px;
+            border: 2px solid #007BFF;
+            border-radius: 4px;
+            text-align: center; /* Center the text input */
+        }
+        .pay-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .send-btn {
+            flex: 1;
+            padding: 10px;
+            background-color: #007BFF;
+            color: #fff;
+            font-size: 18px;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            max-width: 200px; /* Ensure buttons are uniform */
+        }
+        .send-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <img src="profile.jpg" alt="Profile Picture" class="profile-img">
+            <div class="profile-info">
+                <h1>Matthew Taylor</h1>
+                <p>Professional Title or Company Name</p>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="contact-info">
+            <h2>Contact Information</h2>
+            <p><strong>Email:</strong> <a href="mailto:itsmat@duck.com" class="btn">itsmat@duck.com</a></p> <!-- Updated Email -->
+            <p><strong>Phone:</strong> +44 7436 976885</p> <!-- Updated Phone Number -->
+            <p><strong>Address:</strong> Unit 117034, PO Box 6945, London, W1A 6US</p> <!-- Updated Address -->
+        </div>
+
+        <!-- Social Media Links -->
+        <div class="social-media">
+            <h2>Connect with Me</h2>
+            <div class="social-media-icons">
+                <a href="https://linkedin.com/in/yourname" target="_blank"><i class="fab fa-linkedin"></i></a>
+                <a href="https://twitter.com/yourhandle" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="https://instagram.com/yourname" target="_blank"><i class="fab fa-instagram"></i></a>
+                <a href="https://facebook.com/yourprofile" target="_blank"><i class="fab fa-facebook"></i></a>
+                <a href="https://wa.me/07471097569" target="_blank"><i class="fab fa-whatsapp"></i></a> <!-- WhatsApp Link -->
+                <a href="https://t.me/itsmat32143" target="_blank"><i class="fab fa-telegram"></i></a> <!-- Corrected Telegram Link -->
+            </div>
+        </div>
+
+        <!-- Bank Details (Sensitive Information) -->
+        <div class="bank-details">
+            <h2>Bank Details</h2>
+            <p><strong>Name:</strong> Matthew Taylor</p> <!-- Added Your Name -->
+            <p><strong>Sort Code:</strong> 040004</p> <!-- Added Sort Code -->
+            <p><strong>Account Number:</strong> 05008404</p> <!-- Added Account Number -->
+            <p><strong>BIC:</strong> MONZGB2L</p> <!-- Added BIC -->
+            <p><strong>IBAN:</strong> GB62 MONZ 0400 0405 0084 04</p> <!-- Added IBAN -->
+        </div>
+
+        <!-- Send Money Section -->
+        <div class="send-money-box">
+            <h2>Send Money</h2>
+            <label for="amount">Enter Amount:</label>
+            <input type="number" id="amount" placeholder="60.00" step="0.01" min="1">
+            <div class="pay-buttons">
+                <a id="starlingButton" class="send-btn" href="https://settleup.starlingbank.com/matthewtaylor22?amount=60&message=Owed" target="_blank">Pay via Starling</a>
+                <a id="monzoButton" class="send-btn" href="https://monzo.me/matthewtaylor89/60.00?d=Owed&h=Xqvzvg" target="_blank">Pay via Monzo</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const amountInput = document.getElementById('amount');
+        const starlingButton = document.getElementById('starlingButton');
+        const monzoButton = document.getElementById('monzoButton');
+
+        // Update links with dynamic amount input
+        amountInput.addEventListener('input', function() {
+            const amount = amountInput.value || '60.00'; // Default to 60.00 if no input
+            starlingButton.href = `https://settleup.starlingbank.com/matthewtaylor22?amount=${amount}&message=Owed`;
+            monzoButton.href = `https://monzo.me/matthewtaylor89/${amount}?d=Owed&h=Xqvzvg`;
+        });
+    </script>
+
+</body>
+</html>
