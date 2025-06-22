@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Medical Information Input</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      height: 100vh;
+      background-color: #f4f4f4;
+      padding-top: 50px;
+    }
+    #container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 500px;
+      max-width: 90%;
+      overflow-y: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #4CAF50;
+      margin-bottom: 10px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-top: 0;
+      font-size: 18px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      margin-bottom: 16px;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .link {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+      font-family: monospace;
+      word-wrap: break-word;
+    }
+    #charCount {
+      text-align: center;
+      font-size: 12px;
+      color: #555;
+      margin-top: 10px;
+    }
+    #charCount.over-limit {
+      color: red;
+    }
+    #qrCodeContainer {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .qrCodeCanvas {
+      margin-top: 10px;
+    }
+    #lockScreenImagesContainer {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .lockScreenImage {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .lockScreenCanvas {
+      margin: 10px;
+      border: 2px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>Medical Information Portal</h1>
+    <h2>Input your medical details to generate a sharable link</h2>
+
+    <form id="medicalForm">
+      <label for="name">Full Name:</label>
+      <input type="text" id="name" name="n" required oninput="updateCharCount()">
+
+      <label for="dob">Date of Birth:</label>
+      <input type="date" id="dob" name="d" required oninput="updateCharCount()">
+
+      <label for="gender">Gender:</label>
+      <select id="gender" name="g" required onchange="updateCharCount()">
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="bloodType">Blood Type:</label>
+      <input type="text" id="bloodType" name="bt" oninput="updateCharCount()">
+
+      <label for="condition">Known Medical Conditions:</label>
+      <textarea id="condition" name="c" rows="4" oninput="updateCharCount()"></textarea>
+
+      <label for="allergies">Allergies:</label>
+      <textarea id="allergies" name="a" rows="4" oninput="updateCharCount()"></textarea>
+
+      <label for="medications">Current Medications:</label>
+      <textarea id="medications" name="m" rows="4" oninput="updateCharCount()"></textarea>
+
+      <label for="doctor">Primary Doctor:</label>
+      <input type="text" id="doctor" name="doc" oninput="updateCharCount()">
+
+      <label for="emergencyContact">Emergency Contact Name:</label>
+      <input type="text" id="emergencyContact" name="ec" oninput="updateCharCount()">
+
+      <label for="emergencyPhone">Emergency Contact Phone:</label>
+      <input type="text" id="emergencyPhone" name="ep" oninput="updateCharCount()">
+
+      <label for="primaryInsurance">Primary Insurance:</label>
+      <input type="text" id="primaryInsurance" name="pi" oninput="updateCharCount()">
+
+      <label for="secondaryInsurance">Secondary Insurance (if any):</label>
+      <input type="text" id="secondaryInsurance" name="si" oninput="updateCharCount()">
+
+      <label for="insurancePolicyNumber">Insurance Policy Number:</label>
+      <input type="text" id="insurancePolicyNumber" name="ipn" oninput="updateCharCount()">
+
+      <label for="surgeries">Known Surgeries:</label>
+      <textarea id="surgeries" name="s" rows="4" oninput="updateCharCount()"></textarea>
+
+      <label for="vaccination">Vaccination Information:</label>
+      <textarea id="vaccination" name="v" rows="4" oninput="updateCharCount()"></textarea>
+
+      <label for="lastCheckup">Last Medical Checkup Date:</label>
+      <input type="date" id="lastCheckup" name="l" oninput="updateCharCount()">
+
+      <label for="emergencyInstructions">Emergency Procedure Instructions:</label>
+      <textarea id="emergencyInstructions" name="ei" rows="4" oninput="updateCharCount()"></textarea>
+
+      <label for="height">Height:</label>
+      <input type="text" id="height" name="h" oninput="updateCharCount()">
+
+      <label for="weight">Weight:</label>
+      <input type="text" id="weight" name="w" oninput="updateCharCount()">
+
+      <label for="heartRate">Heart Rate:</label>
+      <input type="text" id="heartRate" name="hr" oninput="updateCharCount()">
+
+      <label for="bloodPressure">Blood Pressure:</label>
+      <input type="text" id="bloodPressure" name="bp" oninput="updateCharCount()">
+
+      <label for="disabilities">Known Disabilities (e.g., hearing impairment):</label>
+      <textarea id="disabilities" name="d" rows="4" oninput="updateCharCount()"></textarea>
+
+      <label for="preferredHospital">Preferred Hospital:</label>
+      <input type="text" id="preferredHospital" name="ph" oninput="updateCharCount()">
+
+      <label for="mentalHealth">Mental Health History:</label>
+      <textarea id="mentalHealth" name="mh" rows="4" oninput="updateCharCount()"></textarea>
+
+      <label for="specialNeeds">Special Needs or Conditions:</label>
+      <textarea id="specialNeeds" name="sn" rows="4" oninput="updateCharCount()"></textarea>
+
+      <label for="organDonor">Organ Donor:</label>
+      <select id="organDonor" name="od" onchange="updateCharCount()">
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+
+      <label for="nextOfKin">Next of Kin:</label>
+      <input type="text" id="nextOfKin" name="nok" oninput="updateCharCount()">
+
+      <div id="charCount">Character Count: 0/2048</div>
+      <button type="button" onclick="generateLink()">Generate Link</button>
+    </form>
+
+    <div id="qrCodeContainer">
+      <h3>Generated QR Code:</h3>
+      <canvas id="qrCode" class="qrCodeCanvas"></canvas>
+    </div>
+
+    <div id="linkInputContainer"></div>
+    <div id="lockScreenImagesContainer">
+      <h3>Generated Lock Screen Images with QR Code:</h3>
+      <div id="lockScreenImages" class="lockScreenImage"></div>
+    </div>
+
+    <div id="editContainer">
+      <h3>Edit an Existing Link or QR Code</h3>
+      <label for="existingLink">Enter the Existing Link:</label>
+      <input type="text" id="existingLink" oninput="generateQRCodeFromLink(this.value)">
+      
+      <div>
+        <button onclick="scanQRCode()">Scan QR Code to Edit</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentLink = "";
+
+    function updateCharCount() {
+      let totalLength = 0;
+      const form = document.getElementById('medicalForm');
+      const inputs = form.querySelectorAll('input, textarea, select');
+      inputs.forEach(input => {
+        totalLength += input.value.length;
+      });
+      const charCount = document.getElementById('charCount');
+      charCount.textContent = `Character Count: ${totalLength}/2048`;
+      if (totalLength > 2048) {
+        charCount.classList.add('over-limit');
+      } else {
+        charCount.classList.remove('over-limit');
+      }
+    }
+
+    function generateLink() {
+      const form = document.getElementById('medicalForm');
+      let formData = {};
+      const inputs = form.querySelectorAll('input, textarea, select');
+      inputs.forEach(input => {
+        formData[input.name] = input.value;
+      });
+      const formDataString = JSON.stringify(formData);
+      const encodedData = btoa(formDataString);
+      currentLink = window.location.href.split('?')[0] + "?data=" + encodedData;
+
+      // Generate QR code
+      generateQRCode(currentLink);
+
+      // Generate lock screen images
+      generateLockScreenImages(currentLink);
+
+      // Display link
+      const linkContainer = document.getElementById('linkInputContainer');
+      linkContainer.innerHTML = `<p>Share this link: <input type="text" value="${currentLink}" readonly size="50"></p>`;
+      document.getElementById('qrCodeContainer').style.display = 'block';
+      document.getElementById('lockScreenImagesContainer').style.display = 'block';
+    }
+
+    function generateQRCode(link) {
+      const qrCodeContainer = document.getElementById('qrCode');
+      qrCodeContainer.innerHTML = ''; // Clear previous QR code
+      QRCode.toCanvas(qrCodeContainer, link, function (error) {
+        if (error) {
+          console.error(error);
+        }
+      });
+    }
+
+    function generateLockScreenImages(link) {
+      const lockScreenImagesContainer = document.getElementById('lockScreenImages');
+      lockScreenImagesContainer.innerHTML = ''; // Clear previous images
+
+      // Array of random background colors (use images if needed)
+      const backgrounds = ['#6DBF5A', '#FF8C00', '#FF6347', '#1E90FF', '#8A2BE2', '#20B2AA'];
+      
+      for (let i = 0; i < 3; i++) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const background = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+        
+        canvas.width = 500;
+        canvas.height = 900;
+
+        // Draw background
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw text
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '30px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Bannedapps.uk', canvas.width / 2, 80);
+        ctx.fillText('Scan in Emergency', canvas.width / 2, 820);
+
+        // Draw QR Code
+        const qrCanvas = document.createElement('canvas');
+        QRCode.toCanvas(qrCanvas, link, { width: 200, margin: 0 }, function (error) {
+          if (error) {
+            console.error(error);
+          } else {
+            ctx.drawImage(qrCanvas, canvas.width / 2 - 100, canvas.height / 2 - 100);
+            lockScreenImagesContainer.appendChild(canvas);
+          }
+        });
+      }
+    }
+
+    function generateQRCodeFromLink(link) {
+      if (link) {
+        generateQRCode(link);
+      }
+    }
+
+    function scanQRCode() {
+      const qrCodeScanner = new Html5Qrcode("qrCodeScanner");
+      qrCodeScanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,    // Optional, frames per second
+          qrbox: 250  // Optional, qr box size
+        },
+        function (decodedText, decodedResult) {
+          generateQRCodeFromLink(decodedText);
+          qrCodeScanner.stop(); // Stop scanning after first result
+        },
+        function (errorMessage) {
+          console.error(errorMessage);
+        }
+      );
+    }
+  </script>
+</body>
+</html>

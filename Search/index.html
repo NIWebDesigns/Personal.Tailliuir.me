@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matthew Taylor | Search</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
+</head>
+
+<body>
+    <header>
+        <h1>Welcome to My Search Engine!</h1>
+    </header>
+
+    <main>
+        <div class="search-container">
+            <form action="https://www.google.com/search" method="get">
+                <input type="text" name="q" placeholder="Search Google..." required>
+                <button type="submit">Search</button>
+            </form>
+            <form action="https://duckduckgo.com/" method="get">
+                <input type="text" name="q" placeholder="Search DuckDuckGo..." required>
+                <button type="submit">Search</button>
+            </form>
+                <form action="https://search.brave.com/" method="get">
+                <input type="text" name="q" placeholder="Search Brave..." required>
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        <!-- Bookmarks Section -->
+        <section id="bookmarks">
+            <h2>Bookmarks</h2>
+            <div id="bookmarkButtons">
+                <button onclick="window.open('https://auth0.accounts.westerndigital.com/authorize?...', '_blank')">My Cloud</button>
+                <button onclick="window.open('https://www.gmx.com/', '_blank')">GMX</button>
+                <button onclick="window.open('https://www.github.com/', '_blank')">Github</button>
+                <button onclick="window.open('https://disk.yandex.com/', '_blank')">Yandex Disk</button>
+                <button onclick="window.open('https://www.polarsteps.com/itsmat32143', '_blank')">Polarsteps</button>
+                <button onclick="window.open('https://wanderlog.com/u/itsmat32143', '_blank')">Wanderlog</button>
+                <button onclick="window.open('https://cloud.pocketbook.digital/browser/en/user/3355447/', '_blank')">PocketBook</button>
+                <button onclick="window.open('https://refer.page/dashboard', '_blank')">Referral Codes</button>
+                <button onclick="window.open('https://gateway.ipostalmail.net/oauth2.0/Account/Login', '_blank')">UKPostBox</button>
+                <button onclick="window.open('https://app.simplelogin.io/dashboard/', '_blank')">Simple Login</button>
+                <button onclick="window.open('https://m.skybet.com/', '_blank')">Sky Bet</button>
+            </div>
+        </section>
+
+
+<!-- Bills -->
+        <section id="Bills">
+            <h2>Bills</h2>
+            <div id="resourceButtons">
+                <button onclick="window.open('https://my.idmobile.co.uk/login', '_blank')">ID Mobile</button>
+                <button onclick="window.open('https://www.lebara.co.uk/en/mylebara/register.html', '_blank')">Lebara</button>
+                <button onclick="window.open('https://app.whoop.com/login/', '_blank')">Whoop</button>
+                <button onclick="window.open('https://myaccount.smolproducts.com/login', '_blank')">Smol</button>
+                <button onclick="window.open('https://uk.huel.com/account/login', '_blank')">Huel</button>
+                <button onclick="window.open('https://revivalshots.com/account/login', '_blank')">Revival</button>
+            </div>
+        </section>
+
+
+        <!-- Health -->
+        <section id="Health">
+            <h2>Health</h2>
+            <div id="resourceButtons">
+                <button onclick="window.open('https://mycare.encompass.hscni.net/MyChart/Home/', '_blank')">HSCNI</button>
+                <button onclick="window.open('https://patients.kingsbridgehealthcaregroup.com/onlinebookings', '_blank')">KingsBridge</button>
+            </div>
+        </section>
+
+
+        <!-- Travel -->
+        <section id="Travel">
+            <h2>Travel</h2>
+            <div id="resourceButtons">
+                <button onclick="window.open('https://www.polarsteps.com/itsmat32143', '_blank')">Polarsteps</button>
+                <button onclick="window.open('https://wanderlog.com/u/itsmat32143', '_blank')">Wanderlog</button>
+            </div>
+        </section>
+
+
+<!-- House -->
+        <section id="House">
+            <h2>House</h2>
+            <div id="resourceButtons">
+                <button onclick="window.open('http://80.5.57.108/8095', '_blank')">Turn Off</button>
+                <button onclick="window.open('http://80.5.57.108/8096', '_blank')">Emby Server</button>
+                <button onclick="window.open('http://80.5.57.108/8097', '_blank')">Plex Server</button>
+                <button onclick="window.open('http://80.5.57.108/8098', '_blank')">Torrent Downloader</button>
+                <button onclick="window.open('http://80.5.57.108/8099', '_blank')">Tautulli</button>
+            </div>
+        </section>
+
+
+
+        <!-- Work -->
+        <section id="Work">
+            <h2>Work</h2>
+            <div id="resourceButtons">
+                <button onclick="window.open('https://ut.utrac.online/staff/jobs/shifts', '_blank')">Eventsec - uTRAC</button>
+                <button onclick="window.open('https://hapsolutionsgroup.parim.co/event/index', '_blank')">Hap Solutions - PARiM</button>
+                <button onclick="window.open('https://ntd.theodyssey.co.uk/pwa/signin.html', '_blank')">The Odyssey - NTD</button>
+                <button onclick="window.open('https://members.theextrasdept.com/login', '_blank')">The Extras Dept</button>
+                <button onclick="window.open('https://my.halosystem.cloud/report-incident/custom/33f6cc706ae69f3283d0/ff12ff1a0137386', '_blank')">Sign In - National Stadium</button>
+            
+            </div>
+        </section>
+
+        <!-- Taxi -->
+        <section id="Taxi">
+            <h2>Taxi</h2>
+            <div id="toolButtons">
+                <button onclick="window.open('https://fonacab.webbooker.icabbi.com/book/', '_blank')">FonaCab</button>
+                <button onclick="window.open('https://eb3.autocab.net/#/31515/', '_blank')">Value Cab</button>
+                <button onclick="window.open('https://m.uber.com/go/', '_blank')">Uber</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Current Time: <span id="currentTime">Loading...</span></p>
+    </footer>
+
+    <script src="script.js"></script> <!-- Link to your JavaScript file -->
+</body>
+
+</html>
