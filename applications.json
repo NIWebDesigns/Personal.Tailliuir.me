@@ -1,0 +1,46 @@
+{
+  "apps": [
+    {
+      "name": "7-Zip Official Download",
+      "description": "Official download page for 7-Zip.",
+      "url": "https://www.7-zip.org/download.html",
+      "category": "Utilities"
+    },
+    {
+      "name": "Google Chrome Download",
+      "description": "Official download page for Google Chrome.",
+      "url": "https://www.google.com/chrome/",
+      "category": "Browsers"
+    },
+    {
+      "name": "Visual Studio Code Download",
+      "description": "Official download page for Visual Studio Code.",
+      "url": "https://code.visualstudio.com/download",
+      "category": "Development"
+    },
+    {
+      "name": "VLC Media Player Download",
+      "description": "Official download page for VLC Media Player.",
+      "url": "https://www.videolan.org/vlc/download-windows.html",
+      "category": "Multimedia"
+    },
+    {
+      "name": "Notepad++ Download",
+      "description": "Official download page for Notepad++.",
+      "url": "https://notepad-plus-plus.org/downloads/",
+      "category": "Utilities"
+    },
+    {
+      "name": "Discord Download",
+      "description": "Official download page for Discord.",
+      "url": "https://discord.com/download",
+      "category": "Communication"
+    },
+    {
+      "name": "My Custom App Example",
+      "description": "A hypothetical app download page.",
+      "url": "https://example.com/mycustomapp-download",
+      "category": "Custom"
+    }
+  ]
+}
