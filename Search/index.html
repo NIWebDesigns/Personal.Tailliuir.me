@@ -83,7 +83,7 @@
 
     .app-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(5, 1fr); /* exactly 5 per row */
       gap: 1.2rem;
       justify-items: center;
       max-width: 500px;
@@ -100,8 +100,8 @@
     }
 
     .app-icon img {
-      width: 80px;
-      height: 80px;
+      width: 72px;
+      height: 72px;
       border-radius: 20px;
       object-fit: cover;
       box-shadow: 0 4px 8px rgba(0,0,0,0.25);
@@ -119,18 +119,6 @@
       margin-top: 0.5rem;
       font-size: 0.8rem;
       word-break: break-word;
-    }
-
-    @media (max-width: 600px) {
-      .app-icon img {
-        width: 60px;
-        height: 60px;
-        border-radius: 16px;
-        padding: 6px;
-      }
-      .app-icon span {
-        font-size: 0.7rem;
-      }
     }
 
     footer {
@@ -254,8 +242,8 @@
       <div class="folder-content">
         <div class="app-grid">
           <a class="app-icon" href="http://80.5.57.108/8095" target="_blank"><img src="https://icons.iconarchive.com/icons/custom-icon-design/mono-general-2/512/off-icon.png"><span>Turn Off</span></a>
-          <a class="app-icon" href="http://80.5.57.108/8096" target="_blank"><img src="https://emby.media/favicon.ico"><span>Emby</span></a>
-          <a class="app-icon" href="http://80.5.57.108/8097" target="_blank"><img src="https://plex.tv/favicon.ico"><span>Plex</span></a>
+          <a class="app-icon" href="http://80.5.57.108/8096" target="_blank"><img src="https://emby.media/favicon.ico"><span>Emby Server</span></a>
+          <a class="app-icon" href="http://80.5.57.108/8097" target="_blank"><img src="https://plex.tv/favicon.ico"><span>Plex Server</span></a>
           <a class="app-icon" href="http://80.5.57.108/8098" target="_blank"><img src="https://qbittorrent.org/favicon.ico"><span>Torrent DL</span></a>
           <a class="app-icon" href="http://80.5.57.108/8099" target="_blank"><img src="https://tautulli.com/favicon.ico"><span>Tautulli</span></a>
         </div>
@@ -324,6 +312,7 @@
       }
     });
 
+    // Remember preference
     if (localStorage.getItem("theme") === "dark") {
       document.body.classList.add("dark");
       toggleBtn.textContent = "☀️";
