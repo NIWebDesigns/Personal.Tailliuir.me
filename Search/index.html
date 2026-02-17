@@ -181,6 +181,113 @@
 </style>
 </head>
 <body>
+  <!-- The "Key" Trigger -->
+<div class="legend-container">
+  <button class="legend-trigger">?</button>
+  
+  <!-- The Pop-up Content -->
+  <div class="legend-popup">
+    <h3>Network Key</h3>
+    <ul class="service-list">
+      <li>
+        <img src="https://play-lh.googleusercontent.com/KdhlvGOBM0ooqzOvmc0i7aTVTNt4_IpJAjE9tkqXumSjRQ94Cjhh9aVl7A13vhdgQg=s96-rw" alt="Tor">
+        <span>Tor</span>
+      </li>
+      <li>
+        <img src="https://play-lh.googleusercontent.com/qOoVSS1AE2-oAykiZV9SbJt2EY3y_De_tmQMxDEKRPdhq7sPzbCw_TF3Rhcl47_JAg=w480-h960-rw" alt="I2P">
+        <span>I2P</span>
+      </li>
+      <li>
+        <img src="https://play-lh.googleusercontent.com/RBuTQTq4_uiQR40xRMmAcz4EzTQYgyOJzzd8WnfDbKwJn7iH-fqFk_2nK7V5CqBGh9o=w480-h960-rw" alt="ZeroNet">
+        <span>ZeroNet</span>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<style>
+  /* Container positioning */
+  .legend-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    font-family: sans-serif;
+  }
+
+  /* Floating button */
+  .legend-trigger {
+    background: #34a853; /* Android Green */
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+
+  /* Pop-up Box */
+  .legend-popup {
+    visibility: hidden;
+    width: 280px;
+    background-color: #ffffff;
+    color: #333;
+    border-radius: 12px;
+    padding: 15px;
+    position: absolute;
+    bottom: 60px;
+    right: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    border: 1px solid #eee;
+  }
+
+  /* Show on Hover */
+  .legend-container:hover .legend-popup {
+    visibility: visible;
+    opacity: 1;
+    bottom: 55px;
+  }
+
+  .legend-popup h3 { 
+    margin: 0 0 12px 0; 
+    font-size: 16px; 
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* List Styling */
+  .service-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .service-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 4px 0;
+  }
+
+  .service-list img {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    object-fit: contain;
+  }
+
+  .service-list span {
+    font-size: 14px;
+    font-weight: 500;
+  }
+</style>
+
 <main>
 
 <input id="searchInput" type="search" aria-label="Search bookmarks" placeholder="Search bookmarks..." autocomplete="off"/>
