@@ -181,7 +181,7 @@
 </style>
 </head>
 <body>
-  <!-- The "Key" Trigger -->
+ <!-- The "Key" Trigger -->
 <div class="legend-container">
   <button class="legend-trigger">?</button>
   
@@ -189,18 +189,28 @@
   <div class="legend-popup">
     <h3>Network Key</h3>
     <ul class="service-list">
+      
       <li>
-        <img src="https://play-lh.googleusercontent.com/KdhlvGOBM0ooqzOvmc0i7aTVTNt4_IpJAjE9tkqXumSjRQ94Cjhh9aVl7A13vhdgQg=s96-rw" alt="Tor">
-        <span>Tor</span>
+        <a href="https://www.torproject.org/" target="_blank">
+          <img src="https://play-lh.googleusercontent.com/KdhlvGOBM0ooqzOvmc0i7aTVTNt4_IpJAjE9tkqXumSjRQ94Cjhh9aVl7A13vhdgQg=s96-rw" alt="Tor">
+          <span>Tor</span>
+        </a>
       </li>
+
       <li>
-        <img src="https://play-lh.googleusercontent.com/qOoVSS1AE2-oAykiZV9SbJt2EY3y_De_tmQMxDEKRPdhq7sPzbCw_TF3Rhcl47_JAg=w480-h960-rw" alt="I2P">
-        <span>I2P</span>
+        <a href="https://zeronet.io/" target="_blank">
+          <img src="https://play-lh.googleusercontent.com/RBuTQTq4_uiQR40xRMmAcz4EzTQYgyOJzzd8WnfDbKwJn7iH-fqFk_2nK7V5CqBGh9o=w480-h960-rw" alt="ZeroNet">
+          <span>ZeroNet</span>
+        </a>
       </li>
+      
       <li>
-        <img src="https://play-lh.googleusercontent.com/RBuTQTq4_uiQR40xRMmAcz4EzTQYgyOJzzd8WnfDbKwJn7iH-fqFk_2nK7V5CqBGh9o=w480-h960-rw" alt="ZeroNet">
-        <span>ZeroNet</span>
+        <a href="https://geti2p.net/" target="_blank">
+          <img src="https://play-lh.googleusercontent.com/qOoVSS1AE2-oAykiZV9SbJt2EY3y_De_tmQMxDEKRPdhq7sPzbCw_TF3Rhcl47_JAg=w480-h960-rw" alt="I2P">
+          <span>I2P</span>
+        </a>
       </li>
+
     </ul>
   </div>
 </div>
@@ -217,7 +227,7 @@
 
   /* Floating button */
   .legend-trigger {
-    background: #34a853; /* Android Green */
+    background: #34a853;
     color: white;
     border: none;
     width: 45px;
@@ -269,10 +279,21 @@
   }
 
   .service-list li {
+    margin-bottom: 12px;
+  }
+
+  .service-list a {
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
-    padding: 4px 0;
+    padding: 6px 4px;
+    text-decoration: none;
+    color: #333;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+  }
+
+  .service-list a:hover {
+    background: #f5f5f5;
   }
 
   .service-list img {
