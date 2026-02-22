@@ -313,6 +313,45 @@
 
 <input id="searchInput" type="search" aria-label="Search bookmarks" placeholder="Search bookmarks..." autocomplete="off"/>
 
+<div id="ip-widget" style="font-family:Arial,sans-serif;background:#1e293b;color:#fff;padding:20px;border-radius:10px;max-width:350px;">
+  <h3 style="margin-top:0;">🌍 Your Connection Info</h3>
+  <p><strong>IP:</strong> <span id="ip">Loading...</span></p>
+  <p><strong>Location:</strong> <span id="location"></span></p>
+  <p><strong>ISP:</strong> <span id="isp"></span></p>
+  <p><strong>Status:</strong> <span id="connection"></span></p>
+</div>
+
+<script>
+fetch("https://api.ipapi.is/?q=")
+.then(res => res.json())
+.then(data => {
+  document.getElementById("ip").textContent = data.ip;
+  document.getElementById("location").textContent =
+    data.location.city + ", " +
+    data.location.region + ", " +
+    data.location.country;
+  document.getElementById("isp").textContent = data.company.name;
+
+  let status = "Residential / Normal Connection";
+  let color = "#16a34a";
+
+  if (data.is_vpn || data.is_proxy || data.is_tor) {
+    status = "⚠ VPN / Proxy / Tor Detected";
+    color = "#dc2626";
+  } else if (data.is_datacenter) {
+    status = "⚠ Datacenter / Hosting IP";
+    color = "#dc2626";
+  }
+
+  const connectionEl = document.getElementById("connection");
+  connectionEl.textContent = status;
+  connectionEl.style.color = color;
+})
+.catch(() => {
+  document.getElementById("ip").textContent = "Unable to load.";
+});
+</script>
+  
 <!-- SEARCH -->
 <section>
   <div tabindex="0" role="button" aria-expanded="true" aria-controls="searchFolder" class="folder-header">
