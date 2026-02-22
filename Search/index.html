@@ -361,6 +361,16 @@
         <strong style="display:block;">VPN/Proxy</strong>
         <span id="vpn-status" style="font-size:24px;">❌</span>
       </div>
+
+      <div style="text-align:center;">
+        <strong style="display:block;">Country</strong>
+        <span id="country" style="font-size:18px;"></span>
+      </div>
+
+      <div style="text-align:center;">
+        <strong style="display:block;">Flag</strong>
+        <img id="flag" src="" alt="Country Flag" style="width:40px;height:auto;margin-top:10px;">
+      </div>
     </div>
     
   </div>
@@ -368,7 +378,6 @@
 
 <script>
 (async function(){
-
   let output = [];
   
   // Fetch IP and VPN/Tor status
@@ -379,14 +388,20 @@
     const ip = data.ip;
     const isTor = data.is_tor ? "✔" : "❌";
     const isVPN = data.is_vpn || data.is_proxy ? "✔" : "❌";
+    const countryCode = data.country_code; // Country code
+    const countryName = data.country_name; // Country name
     
     output.push(ip);
-    
-    // Update UI
+
+    // Update UI with IP and Tor/VPN status
     document.getElementById("ip").textContent = ip;
     document.getElementById("tor-status").textContent = isTor;
     document.getElementById("vpn-status").textContent = isVPN;
-    
+    document.getElementById("country").textContent = countryName;
+
+    // Set flag icon using the country code (Flagpedia URL format)
+    document.getElementById("flag").src = `https://flagpedia.net/data/flags/h80/${countryCode.toLowerCase()}.png`;
+
     // Update styles based on status
     document.getElementById("tor-status").style.color = isTor === "✔" ? "#10B981" : "#EF4444";
     document.getElementById("vpn-status").style.color = isVPN === "✔" ? "#10B981" : "#EF4444";
