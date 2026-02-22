@@ -342,59 +342,61 @@
   
   
   
-<div style="width:100%;">
-
-  <div id="ip-widget" style="
-    width:100%;
-    background:#1e293b;
-    color:#fff;
-    font-family:Arial,sans-serif;
-    padding:20px;
-    box-sizing:border-box;
-    border-radius:8px;
-  ">
+<div style="max-width:600px;margin:auto;font-family:Arial,sans-serif;">
+  <div style="background:#1f2937;color:#fff;padding:20px;border-radius:10px;box-sizing:border-box;width:100%;text-align:center;">
+    <h3 style="margin-top:0;">🌐 IP Privacy Check</h3>
     
-    <h3 style="margin-top:0;">🌍 Your Connection Info</h3>
-    <p><strong>IP:</strong> <span id="ip">Loading...</span></p>
-    <p><strong>Location:</strong> <span id="location"></span></p>
-    <p><strong>ISP:</strong> <span id="isp"></span></p>
-    <p><strong>Status:</strong> <span id="connection"></span></p>
+    <div id="check-results" style="display:flex;justify-content:space-evenly;align-items:center;margin-top:20px;">
+      <div style="text-align:center;">
+        <strong style="display:block;">Public IP</strong>
+        <span id="ip" style="font-size:18px;font-weight:600;">Loading...</span>
+      </div>
 
+      <div style="text-align:center;">
+        <strong style="display:block;">Tor</strong>
+        <span id="tor-status" style="font-size:24px;">❌</span>
+      </div>
+
+      <div style="text-align:center;">
+        <strong style="display:block;">VPN/Proxy</strong>
+        <span id="vpn-status" style="font-size:24px;">❌</span>
+      </div>
+    </div>
+    
   </div>
-
 </div>
 
 <script>
-fetch("https://api.ipapi.is/?q=")
-.then(res => res.json())
-.then(data => {
-  document.getElementById("ip").textContent = data.ip;
-  document.getElementById("location").textContent =
-    data.location.city + ", " +
-    data.location.region + ", " +
-    data.location.country;
-  document.getElementById("isp").textContent = data.company.name;
+(async function(){
 
-  let status = "Residential / Normal Connection";
-  let color = "#16a34a";
+  let output = [];
+  
+  // Fetch IP and VPN/Tor status
+  try {
+    const res = await fetch("https://api.ipapi.is/?q=");
+    const data = await res.json();
 
-  if (data.is_vpn || data.is_proxy || data.is_tor) {
-    status = "⚠ VPN / Proxy / Tor Detected";
-    color = "#dc2626";
-  } else if (data.is_datacenter) {
-    status = "⚠ Datacenter / Hosting IP";
-    color = "#dc2626";
+    const ip = data.ip;
+    const isTor = data.is_tor ? "✔" : "❌";
+    const isVPN = data.is_vpn || data.is_proxy ? "✔" : "❌";
+    
+    output.push(ip);
+    
+    // Update UI
+    document.getElementById("ip").textContent = ip;
+    document.getElementById("tor-status").textContent = isTor;
+    document.getElementById("vpn-status").textContent = isVPN;
+    
+    // Update styles based on status
+    document.getElementById("tor-status").style.color = isTor === "✔" ? "#10B981" : "#EF4444";
+    document.getElementById("vpn-status").style.color = isVPN === "✔" ? "#10B981" : "#EF4444";
+
+  } catch(e){
+    document.getElementById("check-results").innerHTML = "<span style='color:#EF4444;'>⚠ Unable to retrieve IP information</span>";
   }
 
-  const connectionEl = document.getElementById("connection");
-  connectionEl.textContent = status;
-  connectionEl.style.color = color;
-})
-.catch(() => {
-  document.getElementById("ip").textContent = "Unable to load.";
-});
+})();
 </script>
-
 
 
 
