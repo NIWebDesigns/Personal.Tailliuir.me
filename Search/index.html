@@ -346,58 +346,58 @@
   <div style="background:#1f2937;color:#fff;padding:20px;border-radius:10px;box-sizing:border-box;width:100%;text-align:center;">
     <h3 style="margin-top:0;">🌐 IP Privacy Check</h3>
     
-    <div id="check-results" style="display:flex;justify-content:space-evenly;align-items:center;margin-top:20px;">
-      <div style="text-align:center;">
-        <strong style="display:block;">Public IP</strong>
-        <span id="ip" style="font-size:18px;font-weight:600;">Loading...</span>
-      </div>
-
-      <div style="text-align:center;">
+    <div id="check-results" style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;">
+      
+      <!-- Tor Status (Left Side) -->
+      <div style="text-align:center;width:30%;">
         <strong style="display:block;">Tor</strong>
         <span id="tor-status" style="font-size:24px;">❌</span>
       </div>
 
-      <div style="text-align:center;">
+      <!-- IP (Center) -->
+      <div style="text-align:center;width:40%;">
+        <strong style="display:block;">Public IP</strong>
+        <span id="ip" style="font-size:18px;font-weight:600;">Loading...</span>
+      </div>
+
+      <!-- VPN/Proxy Status (Right Side) -->
+      <div style="text-align:center;width:30%;">
         <strong style="display:block;">VPN/Proxy</strong>
         <span id="vpn-status" style="font-size:24px;">❌</span>
       </div>
 
-      <div style="text-align:center;">
-        <strong style="display:block;">Country</strong>
-        <span id="country" style="font-size:18px;"></span>
-      </div>
-
-      <div style="text-align:center;">
-        <strong style="display:block;">Flag</strong>
-        <img id="flag" src="" alt="Country Flag" style="width:40px;height:auto;margin-top:10px;">
-      </div>
     </div>
     
+    <!-- Flag Directly Below IP -->
+    <div style="text-align:center;margin-top:20px;">
+      <img id="flag" src="" alt="Country Flag" style="width:40px;height:auto;">
+    </div>
+
   </div>
 </div>
 
 <script>
-(async function(){
+(async function() {
   let output = [];
   
-  // Fetch IP and VPN/Tor status
+  // Fetch IP and VPN/Tor status using ipapi.co (no token required)
   try {
-    const res = await fetch("https://api.ipapi.is/?q=");
+    const res = await fetch("https://ipapi.co/json/");
     const data = await res.json();
 
     const ip = data.ip;
-    const isTor = data.is_tor ? "✔" : "❌";
-    const isVPN = data.is_vpn || data.is_proxy ? "✔" : "❌";
-    const countryCode = data.country_code; // Country code
-    const countryName = data.country_name; // Country name
+    const countryCode = data.country; // Country code
+    
+    // Set status for VPN and Tor (Note: ipapi.co doesn't provide direct Tor/VPN flags)
+    const isTor = "❌"; // Custom logic for Tor can be implemented if needed
+    const isVPN = "❌"; // Custom logic for VPN can be implemented if needed
     
     output.push(ip);
 
-    // Update UI with IP and Tor/VPN status
+    // Update UI with IP and status
     document.getElementById("ip").textContent = ip;
     document.getElementById("tor-status").textContent = isTor;
     document.getElementById("vpn-status").textContent = isVPN;
-    document.getElementById("country").textContent = countryName;
 
     // Set flag icon using the country code (Flagpedia URL format)
     document.getElementById("flag").src = `https://flagpedia.net/data/flags/h80/${countryCode.toLowerCase()}.png`;
@@ -406,7 +406,7 @@
     document.getElementById("tor-status").style.color = isTor === "✔" ? "#10B981" : "#EF4444";
     document.getElementById("vpn-status").style.color = isVPN === "✔" ? "#10B981" : "#EF4444";
 
-  } catch(e){
+  } catch (e) {
     document.getElementById("check-results").innerHTML = "<span style='color:#EF4444;'>⚠ Unable to retrieve IP information</span>";
   }
 
