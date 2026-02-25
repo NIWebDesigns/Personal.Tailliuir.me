@@ -343,19 +343,23 @@
   
 <style>
 #privacyWidget{
-  max-width:850px;
+  max-width:900px;
   margin:auto;
-  font-family:Inter,Arial;
+  font-family:Inter,Arial,sans-serif;
   background:#0f172a;
   color:#e5e7eb;
-  padding:25px;
+  padding:20px;
   border-radius:14px;
-  box-shadow:0 20px 40px rgba(0,0,0,.4)
+  box-shadow:0 20px 40px rgba(0,0,0,.4);
+  transition:all 0.3s ease;
+  overflow:hidden;
 }
-.pw-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.pw-header{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
 .pw-title{font-size:22px;font-weight:600}
-.pw-score{font-size:26px;font-weight:700}
-.pw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px}
+.pw-score{font-size:26px;font-weight:700;display:flex;align-items:center;gap:8px}
+.pw-arrow{transition: transform 0.3s ease;}
+.pw-arrow.open{transform: rotate(180deg);}
+.pw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;margin-top:15px}
 .pw-card{
   background:#1e293b;
   padding:14px;
@@ -363,7 +367,7 @@
   display:flex;
   flex-direction:column;
   gap:4px;
-  transition:.2s;position:relative
+  transition:.2s;
 }
 .pw-card span:first-child{font-size:12px;color:#94a3b8}
 .pw-result{font-weight:600}
@@ -371,39 +375,34 @@
 .pw-warn{color:#F59E0B}
 .pw-bad{color:#EF4444}
 .pw-explain{font-size:11px;color:#94a3b8;margin-top:2px}
-.pw-btn{
-  margin-top:20px;
-  background:#2563eb;
-  border:none;
-  color:white;
-  padding:8px 14px;
-  border-radius:6px;
-  cursor:pointer
-}
 </style>
 
 <div id="privacyWidget">
-  <div class="pw-header">
+  <div class="pw-header" onclick="toggleWidget()">
     <div class="pw-title">Ultimate Privacy Audit</div>
-    <div id="pwScore" class="pw-score">...</div>
+    <div id="pwScore" class="pw-score">... <span class="pw-arrow">&#9660;</span></div>
   </div>
-
-  <div id="pwGrid" class="pw-grid"></div>
-
-  <div style="text-align:center">
-    <button class="pw-btn" onclick="runPrivacyAudit()">Re-Test</button>
-  </div>
+  <div id="pwGrid" class="pw-grid" style="display:none;"></div>
 </div>
 
 <script>
+let widgetOpen = false;
+function toggleWidget(){
+  const grid = document.getElementById("pwGrid");
+  const arrow = document.querySelector(".pw-arrow");
+  widgetOpen = !widgetOpen;
+  grid.style.display = widgetOpen ? "grid" : "none";
+  arrow.classList.toggle("open", widgetOpen);
+}
+
 async function runPrivacyAudit(){
-  const key="6be996c6337e2f272558";
+  const ipapiKey="6be996c6337e2f272558"; // free ipapi.is key
   let score=0;
-  let grid=document.getElementById("pwGrid");
+  const grid=document.getElementById("pwGrid");
   grid.innerHTML="";
 
   const add=(label,value,state,explain)=>{
-    let c=document.createElement("div");
+    const c=document.createElement("div");
     c.className="pw-card";
     let color=state==="good"?"pw-ok":state==="warn"?"pw-warn":"pw-bad";
     c.innerHTML=`<span>${label}</span><div class="pw-result ${color}">${value}</div>`;
@@ -411,78 +410,99 @@ async function runPrivacyAudit(){
     grid.appendChild(c);
   };
 
-  // Fetch IP data from ipapi.is
-  const d=await (await fetch(`https://api.ipapi.is/?key=${key}`)).json();
+  // --- 1. ipapi.is ---
+  let ipapiData={};
+  try{ ipapiData=await (await fetch(`https://api.ipapi.is/?key=${ipapiKey}`)).json(); }catch{}
 
-  // Ensure security object exists
-  const security = d.security || { is_vpn:false, is_tor:false, is_proxy:false, is_datacenter:false, is_abuser:false };
+  // --- 2. ipinfo.io ---
+  let ipinfoData={};
+  try{ ipinfoData=await (await fetch("https://ipinfo.io/json")).json(); }catch{}
 
-  // Public IP / ISP / Country
-  add("Public IP",d.ip,"ok","Your IP is visible to websites. Use a trusted VPN or Tor Browser to hide it.");
-  add("ISP",d.company?.name||"Unknown","ok","Your ISP can track traffic. VPN encrypts traffic and hides ISP info.");
-  add("Country",d.location?.country,"ok","Websites can detect location. VPN or Tor changes apparent location.");
+  // --- 3. ip-api.com ---
+  let ipapiComData={};
+  try{ ipapiComData=await (await fetch("http://ip-api.com/json/")).json(); }catch{}
 
-  // VPN / Tor / Proxy / Datacenter
-  if(security.is_vpn){score+=15; add("VPN","Detected","good");}
-  else add("VPN","Not Detected","ok","Enable a trusted VPN to encrypt traffic and hide your IP.");
+  // --- VPN detection ---
+  let vpnDetected=false, vpnExplanation="";
+  if(ipapiData.security?.is_vpn) { vpnDetected=true; vpnExplanation="Detected by ipapi.is"; }
+  else if(ipinfoData.privacy?.vpn) { vpnDetected=true; vpnExplanation="Detected by ipinfo.io"; }
 
-  if(security.is_tor){score+=25; add("Tor","Detected","good");}
-  else add("Tor","Not Detected","ok","Use Tor Browser to anonymize your connection.");
+  // WebRTC heuristic
+  let localIP=await new Promise(res=>{
+    let ipFound=false;
+    const pc=new RTCPeerConnection({iceServers:[]});
+    pc.createDataChannel("");
+    pc.createOffer().then(o=>pc.setLocalDescription(o));
+    pc.onicecandidate=e=>{
+      if(e?.candidate?.candidate?.match(/\d+\.\d+\.\d+\.\d+/) && !ipFound){
+        ipFound=true;
+        const candidateIP=e.candidate.candidate.match(/\d+\.\d+\.\d+\.\d+/)[0];
+        if(ipapiData.ip && candidateIP!==ipapiData.ip){vpnDetected=true; vpnExplanation+="; WebRTC leak mismatch";}
+        res(candidateIP);
+      }
+    };
+    setTimeout(()=>res("unknown"),1500);
+  });
 
-  if(security.is_proxy){score+=10; add("Proxy","Yes","good");}
-  else add("Proxy","No","ok","Consider using a proxy or VPN to hide your IP.");
+  // --- Tor detection ---
+  let torDetected=false;
+  try{
+    const torList=await (await fetch("https://check.torproject.org/exit-addresses")).text();
+    const ipLine=new RegExp(`ExitAddress ${ipapiData.ip}`).test(torList);
+    torDetected=ipLine;
+  }catch{}
 
-  if(security.is_datacenter){score+=10; add("Datacenter IP","Yes","good");}
-  else add("Datacenter IP","No","ok","Residential IP exposed. VPN or Tor could hide this.");
+  // --- Datacenter detection (simple heuristic: check cloud provider ranges, partial) ---
+  let datacenterDetected=false;
+  const cloudIPs=["34.","35.","52.","54.","13."]; // AWS/partial, example heuristic
+  if(ipapiData.ip) cloudIPs.forEach(prefix=>{if(ipapiData.ip.startsWith(prefix)) datacenterDetected=true;});
 
-  if(!security.is_abuser){score+=10; add("Blacklist","Clean","good");}
-  else add("Blacklist","Flagged","ok","IP flagged. Change IP or VPN to avoid restrictions.");
+  // --- Proxy detection heuristic ---
+  let proxyDetected=false;
+  if(localIP!=="unknown" && localIP!==ipapiData.ip) proxyDetected=true;
 
-  // IPv6 detection
-  try{ await fetch("https://api64.ipify.org?format=json"); add("IPv6","Exposed","ok","IPv6 visible. Use VPN with IPv6 protection or disable IPv6."); }
-  catch{score+=10; add("IPv6","Protected/None","good");}
+  // --- Add basic info ---
+  add("Public IP",ipapiData.ip||ipinfoData.ip||"Unknown","ok","Your IP is visible. VPN/Tor hides it.");
+  add("ISP",ipapiData.company?.name||ipinfoData.org||"Unknown","ok","ISP can track traffic. VPN hides it.");
+  add("Country",ipapiData.location?.country||ipinfoData.country||"Unknown","ok","Location detectable. VPN/Tor hides it.");
 
-  // HTTPS
-  if(location.protocol==="https:"){score+=5; add("HTTPS","Secure","good");}
-  else add("HTTPS","Not Secure","ok","Use HTTPS websites to encrypt traffic.");
+  add("VPN",vpnDetected?"Detected":"Not Detected",vpnDetected?"good":"ok", vpnDetected?vpnExplanation:"Use a trusted VPN to hide your IP.");
+  add("Tor",torDetected?"Detected":"Not Detected",torDetected?"good":"ok", torDetected?"Using Tor":"Use Tor Browser for anonymization.");
+  add("Proxy",proxyDetected?"Detected":"Not Detected",proxyDetected?"good":"ok", proxyDetected?"WebRTC mismatch indicates proxy":"Consider using proxy or VPN.");
+  add("Datacenter IP",datacenterDetected?"Yes":"No",datacenterDetected?"good":"ok", datacenterDetected?"IP belongs to datacenter":"Residential IP, good for privacy.");
 
-  // Do Not Track
-  if(navigator.doNotTrack=="1"){score+=5; add("Do Not Track","Enabled","good");}
-  else add("Do Not Track","Disabled","ok","Enable Do Not Track in your browser settings.");
+  // --- Browser privacy checks ---
+  if(location.protocol==="https:"){score+=5; add("HTTPS","Secure","good");} else add("HTTPS","Not Secure","ok","Use HTTPS websites.");
+  if(!navigator.cookieEnabled){score+=5; add("Cookies","Blocked","good");} else add("Cookies","Enabled","ok","Block third-party cookies.");
+  if(!document.referrer){score+=5; add("Referrer","Hidden","good");} else add("Referrer","Sent","ok","Use extensions to hide referrer.");
+  if(navigator.doNotTrack=="1"){score+=5; add("Do Not Track","Enabled","good");} else add("Do Not Track","Disabled","ok","Enable Do Not Track in browser.");
+  add("Timezone",Intl.DateTimeFormat().resolvedOptions().timeZone,"ok","VPN/Tor can mask timezone.");
+  add("User Agent","Exposed","ok","Use Tor/User-agent randomizer to reduce fingerprinting.");
+  add("Hardware Cores",navigator.hardwareConcurrency||"Unknown","ok","Tor reduces fingerprinting.");
+  add("Device Memory",navigator.deviceMemory||"Unknown","ok","Tor standardizes memory values.");
+  add("Canvas Fingerprint","Supported","ok","Tor mitigates canvas fingerprinting.");
+  add("WebGL Fingerprint","Supported","ok","Tor mitigates WebGL fingerprinting.");
 
-  // Cookies
-  if(!navigator.cookieEnabled){score+=5; add("Cookies","Blocked","good");}
-  else add("Cookies","Enabled","ok","Block third-party cookies using browser settings or extensions.");
+  // WebRTC Leak final check
+  if(localIP!==ipapiData.ip){score+=10; add("WebRTC Leak","Leak Detected","ok","Disable WebRTC or use VPN/Tor.");} 
+  else {score+=10; add("WebRTC Leak","No Leak","good");}
 
-  // Referrer
-  if(!document.referrer){score+=5; add("Referrer","Hidden","good");}
-  else add("Referrer","Sent","ok","Use browser settings or extensions to hide referrer headers.");
+  // --- Final score calculation ---
+  let finalScore=0;
+  const cards=document.querySelectorAll("#pwGrid .pw-result");
+  cards.forEach(c=>{
+    if(c.classList.contains("pw-ok")) finalScore+=5;
+    else if(c.classList.contains("pw-warn")) finalScore+=3;
+    else finalScore+=1;
+  });
 
-  // Timezone / User Agent / Hardware
-  add("Timezone",Intl.DateTimeFormat().resolvedOptions().timeZone,"ok","VPN or Tor can mask your timezone.");
-  add("User Agent","Exposed","ok","Browser fingerprinting possible. Use Tor Browser or user agent randomizer.");
-  add("Hardware Cores",navigator.hardwareConcurrency||"Unknown","ok","Device info detectable. Use Tor to reduce fingerprinting.");
-  add("Device Memory",navigator.deviceMemory||"Unknown","ok","Device memory detectable. Tor standardizes values.");
-  add("Canvas Fingerprint","Supported","ok","Canvas API can fingerprint device. Tor mitigates this.");
-  add("WebGL Fingerprint","Supported","ok","WebGL API can fingerprint device. Tor mitigates this.");
-
-  // WebRTC Leak
-  let leak=false;
-  const pc=new RTCPeerConnection({iceServers:[]});
-  pc.createDataChannel("");
-  pc.createOffer().then(o=>pc.setLocalDescription(o));
-  pc.onicecandidate=e=>{
-    if(e?.candidate?.candidate?.includes(d.ip)) leak=true;
-  };
-  setTimeout(()=>{
-    if(!leak){score+=10; add("WebRTC Leak","No Leak","good");}
-    else add("WebRTC Leak","Leak Detected","ok","Disable WebRTC or use VPN/Tor to prevent exposing your IP.");
-
-    let scoreEl=document.getElementById("pwScore");
-    scoreEl.innerText=score+"/100";
-    scoreEl.className="pw-score "+(score>75?"pw-ok":score>45?"pw-warn":"pw-bad");
-  },1200);
+  const scoreEl=document.getElementById("pwScore");
+  scoreEl.innerText=finalScore+"/100 ";
+  const arrow=document.querySelector(".pw-arrow");
+  scoreEl.appendChild(arrow);
+  scoreEl.className="pw-score "+(finalScore>75?"pw-ok":finalScore>45?"pw-warn":"pw-bad");
 }
+
 runPrivacyAudit();
 </script>
 <br>
