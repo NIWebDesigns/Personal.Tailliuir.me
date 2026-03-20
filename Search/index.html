@@ -1,185 +1,333 @@
 <!DOCTYPE html>
 <html lang="en">
+
+
+
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Bookmark King!</title>
-<style>
-  :root {
-    --bg-color: #f4f4f9;
-    --text-color: #333;
-    --heading-color: #4a6cf7;
-    --card-bg: white;
-    --focus-outline: #648fff;
-  }
-  body.dark {
-    --bg-color: #121212;
-    --text-color: #f4f4f9;
-    --heading-color: #90caf9;
-    --card-bg: #222;
-  }
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background: var(--bg-color);
-    color: var(--text-color);
-    transition: background 0.3s, color 0.3s;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  main {
-    padding: 1rem 1rem 3rem;
-    max-width: 640px;
-    margin: auto;
-  }
-  #searchInput {
-    width: 100%;
-    font-size: 1rem;
-    padding: 0.6rem 1rem;
-    border-radius: 12px;
-    border: 1.8px solid #ccc;
-    box-sizing: border-box;
-    margin-bottom: 1.3rem;
-    outline-offset: 2px;
-  }
-  #searchInput:focus {
-    border-color: var(--heading-color);
-    box-shadow: 0 0 6px var(--heading-color);
-  }
-  section {
-    margin-bottom: 1.7rem;
-    border-radius: 14px;
-    overflow: hidden;
-    background: var(--card-bg);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    transition: background 0.3s, box-shadow 0.3s;
-    border: 1px solid transparent;
-  }
-  section:focus-within {
-    border-color: var(--focus-outline);
-  }
-  .folder-header {
-    cursor: pointer;
-    padding: 1.1rem 1rem;
-    font-size: 1.20rem;
-    font-weight: 700;
-    color: var(--heading-color);
-    background: rgba(0,0,0,0.03);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    user-select: none;
-    transition: background 0.25s ease;
-  }
-  .folder-header:hover, .folder-header:focus {
-    background: rgba(0,0,0,0.08);
-    outline: none;
-  }
-  .folder-header .arrow {
-    transition: transform 0.3s;
-    flex-shrink: 0;
-  }
-  section.collapsed .arrow {
-    transform: rotate(-90deg);
-  }
-  .folder-content {
-    max-height: 900px;
-    overflow: hidden;
-    transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1), padding 0.3s ease;
-    padding: 1rem 1rem 1.3rem;
-  }
-  section.collapsed .folder-content {
-    max-height: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-  .app-grid {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fit,minmax(68px,1fr));
-    justify-items: center;
-  }
-  .app-icon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    color: inherit;
-    text-decoration: none;
-    outline-offset: 3px;
-    transition: transform 0.2s ease, box-shadow 0.25s ease;
-    user-select: none;
-  }
-  .app-icon:focus-visible {
-    outline: 2.8px solid var(--heading-color);
-    border-radius: 16px;
-  }
-  .app-icon img {
-    width: 60px;
-    height: 60px;
-    border-radius: 16px;
-    object-fit: contain;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.2);
-    background: var(--card-bg);
-    padding: 8px;
-    border: 1px solid #ddd;
-    transition: transform 0.2s ease, box-shadow 0.3s ease;
-  }
-  .app-icon:hover img,
-  .app-icon:focus-visible img {
-    transform: scale(1.15);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-  }
-  .app-icon span {
-    margin-top: 0.42rem;
-    font-size: 0.9rem;
-    max-width: 72px;
-    word-break: break-word;
-    line-height: 1.2;
-    user-select: text;
-  }
-  footer {
-    text-align: center;
-    padding: 1rem 1rem;
-    background: var(--card-bg);
-    font-size: 0.9rem;
-    color: var(--text-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    border-top: 1px solid #ccc;
-    box-sizing: border-box;
-  }
-  .toggle-btn {
-    cursor: pointer;
-    border: none;
-    background: none;
-    font-size: 1.5rem;
-    margin-left: 12px;
-    transition: transform 0.3s ease;
-  }
-  .toggle-btn:hover {
-    transform: rotate(20deg);
-  }
-  @media (max-width: 480px) {
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bookmark King!</title>
+
+  <style>
+    :root {
+      --bg-color: #f4f4f9;
+      --text-color: #333;
+      --heading-color: #4a6cf7;
+      --card-bg: #ffffff;
+      --focus-outline: #648fff;
+    }
+
+    body.dark {
+      --bg-color: #121212;
+      --text-color: #f4f4f9;
+      --heading-color: #90caf9;
+      --card-bg: #222222;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: var(--bg-color);
+      color: var(--text-color);
+      transition: background 0.3s, color 0.3s;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
     main {
-      padding: 0.8rem 0.8rem 3rem;
+      padding: 1rem 1rem 3rem;
+      max-width: 640px;
+      margin: 0 auto;
     }
-    .app-icon img {
-      width: 48px;
-      height: 48px;
-      padding: 6px;
+
+    #searchInput {
+      width: 100%;
+      font-size: 1rem;
+      padding: 0.6rem 1rem;
+      border-radius: 12px;
+      border: 1.8px solid #ccc;
+      margin-bottom: 1.3rem;
+      outline-offset: 2px;
+    }
+
+    #searchInput:focus {
+      border-color: var(--heading-color);
+      box-shadow: 0 0 6px var(--heading-color);
+    }
+
+    section {
+      margin-bottom: 1.7rem;
       border-radius: 14px;
+      background: var(--card-bg);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      transition: background 0.3s, box-shadow 0.3s;
+      border: 1px solid transparent;
+      overflow: visible;
     }
+
+    section:focus-within {
+      border-color: var(--focus-outline);
+    }
+
+    .folder-header {
+      cursor: pointer;
+      padding: 1.1rem 1rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--heading-color);
+      background: rgba(0,0,0,0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      user-select: none;
+      transition: background 0.25s ease;
+    }
+
+    .folder-header:hover,
+    .folder-header:focus {
+      background: rgba(0,0,0,0.08);
+      outline: none;
+    }
+
+    .folder-header .arrow {
+      transition: transform 0.3s;
+      flex-shrink: 0;
+    }
+
+    section.collapsed .arrow {
+      transform: rotate(-90deg);
+    }
+
+    .folder-content {
+      max-height: 9000px;
+      overflow: hidden;
+      transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1), padding 0.3s ease;
+      padding: 1rem 1rem 1.3rem;
+    }
+
+    section.collapsed .folder-content {
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    .app-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+      justify-items: center;
+      align-items: start;
+    }
+
+    .app-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: inherit;
+      text-decoration: none;
+      outline-offset: 3px;
+      transition: transform 0.2s ease, box-shadow 0.25s ease;
+      user-select: none;
+      width: 100%;
+      max-width: 96px;
+    }
+
+    .app-icon:focus-visible {
+      outline: 2.8px solid var(--heading-color);
+      border-radius: 16px;
+    }
+
+    .app-icon img {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      object-fit: contain;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+      background: var(--card-bg);
+      padding: 8px;
+      border: 1px solid #ddd;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      display: block;
+    }
+
+    .app-icon:hover img,
+    .app-icon:focus-visible img {
+      transform: scale(1.08);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+
     .app-icon span {
-      font-size: 0.85rem;
-      max-width: 60px;
+      margin-top: 0.42rem;
+      font-size: 0.9rem;
+      max-width: 86px;
+      word-break: break-word;
+      line-height: 1.2;
+      user-select: text;
     }
-  }
-</style>
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: var(--card-bg);
+      font-size: 0.9rem;
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      border-top: 1px solid #ccc;
+    }
+
+    .toggle-btn {
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 1.5rem;
+      margin-left: 12px;
+      transition: transform 0.3s ease;
+      color: inherit;
+    }
+
+    .toggle-btn:hover {
+      transform: rotate(20deg);
+    }
+
+    .legend-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      font-family: sans-serif;
+    }
+
+    .legend-trigger {
+      background: #34a853;
+      color: white;
+      border: none;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .legend-popup {
+      visibility: hidden;
+      width: 280px;
+      background-color: #ffffff;
+      color: #333;
+      border-radius: 12px;
+      padding: 15px;
+      position: absolute;
+      bottom: 60px;
+      right: 0;
+      opacity: 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      border: 1px solid #eee;
+    }
+
+    .legend-container:hover .legend-popup {
+      visibility: visible;
+      opacity: 1;
+      bottom: 55px;
+    }
+
+    .legend-popup h3 {
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .service-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .service-list li {
+      margin-bottom: 12px;
+    }
+
+    .service-list a {
+      display: flex;
+      align-items: center;
+      padding: 6px 4px;
+      text-decoration: none;
+      color: #333;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .service-list a:hover {
+      background: #f5f5f5;
+    }
+
+    .service-list img {
+      width: 24px;
+      height: 24px;
+      margin-right: 12px;
+      object-fit: contain;
+    }
+
+    .service-list span {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    @media (max-width: 480px) {
+      main {
+        padding: 0.8rem 0.8rem 3rem;
+      }
+
+      .app-grid {
+        gap: 0.85rem;
+        grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+      }
+
+      .app-icon {
+        max-width: 88px;
+      }
+
+      .app-icon img {
+        width: 48px;
+        height: 48px;
+        padding: 6px;
+        border-radius: 14px;
+      }
+
+      .app-icon span {
+        font-size: 0.85rem;
+        max-width: 72px;
+      }
+
+      .legend-container {
+        right: 12px;
+        bottom: 12px;
+      }
+
+      .legend-popup {
+        width: min(280px, calc(100vw - 24px));
+      }
+    }
+  </style>
 </head>
+
+
+
+
+  
 <body>
  <!-- The "Key" Trigger -->
 <div class="legend-container">
