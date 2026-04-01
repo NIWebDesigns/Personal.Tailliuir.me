@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Firestick Shortcode Player</title>
+  <style>
+    :root{--bg:#000;--panel:rgba(12,12,12,.88);--panel-2:rgba(26,26,26,.96);--text:#fff;--muted:#c6c6c6;--line:rgba(255,255,255,.16);--accent:#69d2de}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:#000;color:var(--text);font-family:Arial,sans-serif}
+    body{overflow:hidden}
+    video{width:100vw;height:100vh;object-fit:contain;background:#000}
+    button,input{font:inherit;color:inherit}
+    .btn{height:52px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#1d1d1d;cursor:pointer;font-size:18px;font-weight:700}
+    .btn-primary{background:var(--accent);color:#001316;border:none}
+    .bottom-bar{position:fixed;left:16px;right:16px;bottom:16px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:18px;display:flex;align-items:center;gap:12px;z-index:20;backdrop-filter:blur(8px);font-size:16px;transition:opacity .3s}
+    .bottom-bar.hidden{opacity:0;pointer-events:none}
+    .bottom-bar input[type="text"]{flex:3;height:52px;padding:0 16px;background:#111;border:1px solid var(--line);border-radius:12px;font-size:18px}
+    .jump-box{display:flex;align-items:center;gap:8px;background:#111;padding:6px;border-radius:12px;border:1px solid var(--line);margin-left:auto}
+    .jump-box input{width:180px;height:42px;font-size:18px;padding:0 12px}
+    .jump-box .btn{height:42px;min-width:78px;font-size:16px}
+    .status{min-width:120px;color:var(--muted)}
+    .top-time{position:fixed;top:24px;right:24px;padding:12px 16px;background:rgba(12,12,12,.88);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(8px);font-size:20px;font-weight:700;color:var(--text);z-index:10}
+    .clock{position:fixed;top:24px;left:50%;transform:translateX(-50%);padding:8px 16px;background:rgba(12,12,12,.88);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(8px);font-size:20px;font-weight:700;color:var(--text);z-index:10}
+    :focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+    @media (max-width:800px){.bottom-bar{flex-wrap:wrap}.jump-box{width:100%;margin-left:0;margin-top:8px}.bottom-bar input[type="text"]{flex:1}.top-time,.clock{top:16px;font-size:18px;padding:10px 12px}}
+  </style>
+</head>
+<body>
+  <video id="video" playsinline webkit-playsinline preload="metadata"></video>
+
+  <div class="top-time" id="time">00:00 / 00:00</div>
+  <div class="clock" id="clock"></div>
+
+  <div class="bottom-bar" id="bottomBar">
+    <input id="urlInput" type="text" placeholder="Use shorturl.at to shorten the links">
+    <button class="btn btn-primary" id="loadBtn">Load</button>
+    <div class="jump-box">
+      <input id="jumpInput" type="text" placeholder="0230 = 02:30">
+      <button class="btn" id="jumpBtn">Jump</button>
+    </div>
+    <div class="status" id="status">No video loaded</div>
+  </div>
+
+  <script>
+    const video = document.getElementById("video");
+    const bottomBar = document.getElementById("bottomBar");
+    const urlInput = document.getElementById("urlInput");
+    const loadBtn = document.getElementById("loadBtn");
+    const jumpInput = document.getElementById("jumpInput");
+    const jumpBtn = document.getElementById("jumpBtn");
+    const status = document.getElementById("status");
+    const time = document.getElementById("time");
+    const clock = document.getElementById("clock");
+
+    let barVisible = true;
+    let tapTimeout;
+    let isPlaying = false;
+
+    function toggleBar() {
+      barVisible = !barVisible;
+      bottomBar.classList.toggle("hidden", !barVisible);
+    }
+
+    function hideBarDelayed() {
+      clearTimeout(tapTimeout);
+      if (isPlaying) {
+        tapTimeout = setTimeout(() => barVisible && toggleBar(), 3000);
+      }
+    }
+
+    document.addEventListener("click", e => {
+      if (e.target.closest(".bottom-bar")) return;
+      e.preventDefault();
+      toggleBar();
+      if (video.src) {
+        if (video.paused) {
+          const p = video.play();
+          if (p && p.then) {
+            p.then(() => {
+              isPlaying = true;
+              status.textContent = "Playing";
+              hideBarDelayed();
+            }).catch(() => {
+              status.textContent = "Play failed";
+            });
+          }
+        } else {
+          video.pause();
+          isPlaying = false;
+          status.textContent = "Paused";
+        }
+      }
+      if (!isPlaying) hideBarDelayed();
+    });
+
+    function fmtHM(t) {
+      if (!isFinite(t)) return "00:00";
+      const h = Math.floor(t / 3600);
+      const m = Math.floor((t % 3600) / 60);
+      return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+    }
+    function updateTime() {
+      time.textContent = fmtHM(video.currentTime) + " / " + fmtHM(video.duration);
+    }
+    function setStatus(text) {
+      status.textContent = text;
+    }
+    function clampTime(t) {
+      return Math.max(0, Math.min(isFinite(video.duration) ? video.duration : t, t));
+    }
+    function seekTo(t) {
+      if (!video.src) return;
+      if (!isFinite(video.duration)) {
+        setStatus("Wait for video to load");
+        return;
+      }
+      video.currentTime = clampTime(t);
+      updateTime();
+    }
+    function parseJump(value) {
+      const v = (value || "").trim().replace(/[^0-9:]/g, "");
+      if (!v) return null;
+      if (v.includes(":")) {
+        const parts = v.split(":").map(Number);
+        if (parts.some(n => Number.isNaN(n))) return null;
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+      }
+      if (v.length === 4) {
+        const h = parseInt(v.substring(0, 2));
+        const m = parseInt(v.substring(2, 4));
+        return h * 3600 + m * 60;
+      }
+      return Number(v);
+    }
+
+    function loadVideo(url) {
+      let clean = (url || "").trim();
+      if (!clean) {
+        setStatus("Paste a direct video link");
+        return;
+      }
+      // Fixed regex for 5-char shortcodes like cjwOI
+      if (clean.match(/^[a-zA-Z0-9]{5}$/)) {
+        clean = "https://shorturl.at/" + clean;
+      }
+      video.pause();
+      video.src = clean;
+      video.load();
+      setStatus("Loading...");
+      isPlaying = false;
+      video.focus();
+    }
+
+    loadBtn.addEventListener("click", () => loadVideo(urlInput.value));
+    urlInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") loadVideo(urlInput.value);
+    });
+    jumpBtn.addEventListener("click", () => {
+      const secs = parseJump(jumpInput.value);
+      if (secs === null) {
+        setStatus("Enter 0230 or 1:23");
+        return;
+      }
+      seekTo(secs);
+      setStatus("Jumped to " + fmtHM(secs));
+    });
+    jumpInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") jumpBtn.click();
+    });
+
+    function updateClock() {
+      const now = new Date();
+      clock.textContent = now.toLocaleTimeString("en-GB", {hour12: false});
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    video.addEventListener("loadedmetadata", () => {
+      setStatus("Ready");
+      updateTime();
+    });
+    video.addEventListener("timeupdate", updateTime);
+    video.addEventListener("play", () => {
+      isPlaying = true;
+      setStatus("Playing");
+    });
+    video.addEventListener("pause", () => {
+      isPlaying = false;
+      setStatus("Paused");
+    });
+    video.addEventListener("waiting", () => setStatus("Buffering"));
+    video.addEventListener("ended", () => {
+      isPlaying = false;
+      setStatus("Ended");
+    });
+    video.addEventListener("error", () => {
+      isPlaying = false;
+      setStatus("Could not play this link");
+    });
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "MediaPlayPause" || e.key === "Enter") {
+        e.preventDefault();
+        toggleBar();
+      }
+      if (e.key === "ArrowLeft" && video.src) {
+        e.preventDefault();
+        seekTo(video.currentTime - 600);
+      }
+      if (e.key === "ArrowRight" && video.src) {
+        e.preventDefault();
+        seekTo(video.currentTime + 600);
+      }
+    });
+  </script>
+</body>
+</html>
