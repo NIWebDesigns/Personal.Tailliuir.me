@@ -1,7 +1,7 @@
 {
   "name": "App Drawer",
   "short_name": "App Drawer",
-  "start_url": "https://personal.tailiuir.me/Apps/index.html",
+  "start_url": "/Apps/Index.html",
   "display": "standalone",
   "background_color": "#f1f3f4",
   "theme_color": "#f1f3f4",
