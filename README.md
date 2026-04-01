@@ -9,3 +9,4 @@
 - [**MOTORBIKE**](https://personal.tailliuir.me/Motorbike)
 - [**PHOTOS**](https://personal.tailliuir.me/Photos)
 - [**SEARCH**](https://personal.tailliuir.me/Search)
+- [**PLAYER**](https://personal.tailliuir.me/Player)
