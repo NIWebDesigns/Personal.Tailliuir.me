@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Launcher Web</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Roboto, sans-serif;
+  background: #f1f3f4;
+  color: #202124;
+  overflow: hidden;
+}
+* { box-sizing: border-box; }
+
+.header {
+  position: sticky;
+  top: 0;
+  padding: 12px;
+  background: #f1f3f4;
+  z-index: 10;
+}
+
+#search {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: block;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #e8eaed;
+  font-size: 14px;
+}
+
+.drawer {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  padding: 8px 12px 24px;
+  mask-image: linear-gradient(to bottom, transparent 0px, black 24px, black calc(100% - 24px), transparent);
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 72px);
+  justify-content: center;
+  gap: 20px 16px;
+  margin: 0 auto;
+  max-width: 1000px;
+}
+
+@media (min-width: 600px) {
+  .app-grid { grid-template-columns: repeat(6, 76px); }
+}
+
+@media (min-width: 900px) {
+  .app-grid { grid-template-columns: repeat(8, 84px); }
+}
+
+@media (min-width: 1200px) {
+  .app-grid { grid-template-columns: repeat(10, 92px); }
+}
+
+.app {
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s;
+}
+
+.app:hover {
+  transform: scale(1.08);
+}
+
+.app img {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+}
+
+.app-name {
+  margin-top: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app:active img {
+  transform: scale(0.82);
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.15);
+  transform: scale(0);
+  animation: ripple 0.5s linear;
+}
+
+@keyframes ripple {
+  to { transform: scale(4); opacity: 0; }
+}
+
+.card {
+  margin: 32px auto;
+  max-width: 900px;
+  padding: 16px;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* App open animation overlay */
+.app-open {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #f1f3f4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 999;
+}
+
+.app-open.active {
+  opacity: 1;
+}
+
+</style>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f1f3f4">
+</head>
+<body>
+
+<div class="header">
+  <input type="text" id="search" placeholder="Search apps">
+</div>
+
+<div class="drawer" id="drawer">
+  <div class="app-grid" id="grid"></div>
+
+  <div class="card">
+    <div style="width:100%;height:0;padding-bottom:50%;position:relative;border-radius:16px;overflow:hidden;">
+      <iframe loading="lazy" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" src="https://www.metercustom.net/plugin/"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="app-open" id="appOpen"></div>
+
+<script>
+(function(){
+  const apps = [
+    { name: 'Google', url: 'https://google.co.uk', icon: getIcon('google.co.uk') },
+    { name: 'DuckDuckGo', url: 'https://duckduckgo.com', icon: getIcon('duckduckgo.com') },
+    { name: 'Brave', url: 'https://search.brave.com', icon: getIcon('brave.com') },
+    { name: 'GrapheneOS', url: 'https://grapheneos.org', icon: getIcon('grapheneos.org') },
+    { name: 'pCloud', url: 'https://my.pcloud.com', icon: getIcon('pcloud.com') },
+    { name: 'Prey', url: 'https://panel.preyproject.com', icon: getIcon('preyproject.com') },
+    { name: 'Find Device', url: 'https://server.fmd-foss.org', icon: getIcon('fmd-foss.org') },
+    { name: 'Honest Mobile', url: 'https://my.honestmobile.com', icon: getIcon('honestmobile.com') },
+    { name: '1pMobile', url: 'https://www.1pmobile.com', icon: getIcon('1pmobile.com') },
+    { name: 'RustDesk', url: 'https://rustdesk.com/web', icon: getIcon('rustdesk.com') },
+    { name: 'YouTube', url: 'https://youtube.com', icon: getIcon('youtube.com') }
+  ];
+
+  function getIcon(domain) {
+    return `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+  }
+
+  apps.sort((a,b)=>a.name.localeCompare(b.name));
+
+  const grid = document.getElementById('grid');
+  const overlay = document.getElementById('appOpen');
+
+  function render(filter=''){
+    grid.innerHTML='';
+
+    apps
+      .filter(a=>a.name.toLowerCase().includes(filter.toLowerCase()))
+      .forEach(app=>{
+        const div = document.createElement('div');
+        div.className='app';
+
+        div.innerHTML=`
+          <img src="${app.icon}">
+          <div class="app-name">${app.name}</div>
+        `;
+
+        div.onclick = ()=>{
+          overlay.classList.add('active');
+          setTimeout(()=> window.open(app.url, '_blank'), 150);
+          setTimeout(()=> overlay.classList.remove('active'), 300);
+        };
+
+        div.addEventListener('click', e => {
+          const circle = document.createElement('span');
+          const diameter = Math.max(div.clientWidth, div.clientHeight);
+          const radius = diameter / 2;
+
+          circle.style.width = circle.style.height = `${diameter}px`;
+          circle.style.left = `${e.clientX - div.getBoundingClientRect().left - radius}px`;
+          circle.style.top = `${e.clientY - div.getBoundingClientRect().top - radius}px`;
+          circle.classList.add('ripple');
+
+          const ripple = div.querySelector('.ripple');
+          if (ripple) ripple.remove();
+
+          div.appendChild(circle);
+        });
+
+        grid.appendChild(div);
+      });
+  }
+
+  document.getElementById('search').oninput = e=>render(e.target.value);
+  render();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('sw.js').catch(console.error);
+}
+</script>
+
+</body>
+</html>
