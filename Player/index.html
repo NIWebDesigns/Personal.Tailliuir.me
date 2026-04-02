@@ -156,7 +156,7 @@
         setStatus("Paste a direct video link");
         return;
       }
-      if (clean.match(/^[a-zA-Z0-9]{5}$/)) {
+      if (clean.match(/^[a-zA-Z0-9]{1}$/)) {
         clean = "https://tailliuir.me/W/" + clean;
       }
       video.pause();
