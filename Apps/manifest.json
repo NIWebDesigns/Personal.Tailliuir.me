@@ -1,7 +1,7 @@
 {
   "name": "Tailliuir Apps",
   "short_name": "Apps",
-  "start_url": "index.html",
+  "start_url": "/Apps/Index.html",
   "display": "standalone",
   "background_color": "#f1f3f4",
   "theme_color": "#f1f3f4",
