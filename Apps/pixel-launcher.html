@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Launcher">
+<meta name="theme-color" content="#000000">
+<script>
+// Inject PWA manifest via Blob URL — this is what Brave/Chrome on Android
+// requires to show "Install app" instead of just "Add to Home Screen shortcut".
+// Icons are generated as real PNGs via canvas (SVG icons are rejected by Chrome PWA checker).
+(function () {
+  function makePNG(size) {
+    var c = document.createElement('canvas');
+    c.width = c.height = size;
+    var ctx = c.getContext('2d');
+    // Black background
+    ctx.fillStyle = '#000000';
+    ctx.roundRect
+      ? (ctx.beginPath(), ctx.roundRect(0, 0, size, size, size * 0.2), ctx.fill())
+      : ctx.fillRect(0, 0, size, size);
+    // 3x3 white grid of circles — launcher icon look
+    ctx.fillStyle = '#ffffff';
+    var pad = size * 0.18;
+    var cell = (size - pad * 2) / 3;
+    var r = cell * 0.28;
+    for (var row = 0; row < 3; row++) {
+      for (var col = 0; col < 3; col++) {
+        var cx = pad + col * cell + cell / 2;
+        var cy = pad + row * cell + cell / 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    return c.toDataURL('image/png');
+  }
+
+  var icon192 = makePNG(192);
+  var icon512 = makePNG(512);
+
+  var manifest = {
+    name: 'Pixel Launcher',
+    short_name: 'Launcher',
+    description: 'My personal app launcher',
+    start_url: './',
+    scope: './',
+    display: 'standalone',
+    orientation: 'portrait-primary',
+    background_color: '#000000',
+    theme_color: '#000000',
+    icons: [
+      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+    ]
+  };
+
+  var blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+  var blobUrl = URL.createObjectURL(blob);
+  var link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = blobUrl;
+  document.head.appendChild(link);
+}());
+</script>
+<title>Pixel Launcher</title>
+<style>
+/* ═══════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════ */
+*, *::before, *::after {
+  margin: 0; padding: 0; box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #000;
+  font-family: 'Google Sans', 'Roboto', sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ═══════════════════════════════════════
+   STATUS BAR
+═══════════════════════════════════════ */
+#statusbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  z-index: 9999;
+  pointer-events: none;
+}
+.sb-time {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.sb-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.sb-right svg { width: 14px; height: 14px; fill: #fff; display: block; }
+.sb-batt { color: #fff; font-size: 11px; font-weight: 600; }
+
+/* ═══════════════════════════════════════
+   HOME SCREEN
+═══════════════════════════════════════ */
+#homescreen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* Folder/icon grid — bottom aligned */
+.home-grid {
+  position: absolute;
+  left: 0; right: 0;
+  /* bottom = dock(88px) + pill(28px) + larger gap to match screenshot */
+  bottom: 168px;
+  padding: 0 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  row-gap: 28px;
+}
+
+/* ═══════════════════════════════════════
+   DOCK — 4 icons on pure black, no bg
+═══════════════════════════════════════ */
+#dock {
+  position: fixed;
+  bottom: 28px;
+  left: 0; right: 0;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 10px;
+  z-index: 10;
+  /* Absolutely no background */
+}
+
+/* ═══════════════════════════════════════
+   NAV PILL — single white bar at very bottom
+   This IS the drawer opener
+═══════════════════════════════════════ */
+#nav-pill {
+  position: fixed;
+  bottom: 0;
+  left: 0; right: 0;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+#nav-pill .bar {
+  width: 130px;
+  height: 5px;
+  background: rgba(255,255,255,0.55);
+  border-radius: 3px;
+  transition: background 0.12s;
+}
+#nav-pill:active .bar { background: rgba(255,255,255,0.9); }
+
+/* ═══════════════════════════════════════
+   APP DRAWER — slides up as bottom sheet
+   with ROUNDED TOP CORNERS like the photos
+═══════════════════════════════════════ */
+#appdrawer {
+  position: fixed;
+  /* starts just below the status bar (32px) so corners show */
+  top: 32px;
+  left: 0; right: 0; bottom: 0;
+  background: rgb(178, 182, 210);
+  border-radius: 28px 28px 0 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Off screen below */
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Shadow to lift off home screen */
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+}
+#appdrawer.open {
+  transform: translateY(0);
+}
+
+/* Pill at top of drawer to close it */
+#drawer-pill {
+  flex-shrink: 0;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: 8px;
+}
+#drawer-pill .bar {
+  width: 44px;
+  height: 5px;
+  background: rgba(80, 85, 130, 0.45);
+  border-radius: 3px;
+  transition: background 0.12s;
+}
+#drawer-pill:active .bar { background: rgba(80, 85, 130, 0.8); }
+
+/* Gap between pill and search — bigger to match screenshot */
+.drawer-gap { height: 46px; flex-shrink: 0; }
+
+/* Search bar */
+#search-wrap {
+  flex-shrink: 0;
+  margin: 0 16px;
+  background: rgba(210, 214, 235, 0.9);
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  padding: 11px 18px;
+  gap: 12px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+}
+#search-wrap svg { width: 18px; height: 18px; fill: #777; flex-shrink: 0; display: block; }
+#search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  color: #333;
+  font-family: inherit;
+  outline: none;
+}
+#search-input::placeholder { color: #888; }
+
+/* App scroll grid */
+.drawer-grid {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-content: start;
+  padding: 10px 8px 60px;
+  row-gap: 20px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.drawer-grid::-webkit-scrollbar { display: none; }
+
+#no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #555;
+  font-size: 14px;
+  padding-top: 30px;
+  display: none;
+}
+
+/* ═══════════════════════════════════════
+   SHARED ICON STYLES
+═══════════════════════════════════════ */
+.app-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0 2px;
+  -webkit-tap-highlight-color: transparent;
+}
+.app-icon:active .icon-img { transform: scale(0.84); }
+
+.icon-img {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform 0.1s ease;
+  flex-shrink: 0;
+}
+
+.app-label {
+  font-size: 11px;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+  text-align: center;
+  max-width: 72px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.drawer-grid .app-label {
+  color: #18192c;
+  text-shadow: none;
+}
+
+/* ═══════════════════════════════════════
+   FOLDER ICONS — circular, semi-transparent
+═══════════════════════════════════════ */
+.folder-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.folder-bubble {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(148, 156, 204, 0.44);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  padding: 8px;
+  transition: transform 0.1s ease;
+  overflow: hidden;
+}
+.folder-icon:active .folder-bubble { transform: scale(0.84); }
+.folder-mini {
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%; height: 100%;
+}
+.folder-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+  text-align: center;
+  max-width: 72px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ═══════════════════════════════════════
+   FOLDER POPUP — white card, left-positioned
+   exactly like the Travel screenshot
+═══════════════════════════════════════ */
+#folder-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  /* No solid overlay — blurred background behind card */
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+#folder-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.folder-popup {
+  position: absolute;
+  /* Positioned left-of-centre like the screenshot */
+  left: 16px;
+  top: 50%;
+  transform: translateY(-60%) scale(0.85);
+  transition: transform 0.2s ease;
+  background: rgba(235, 237, 248, 0.97);
+  border-radius: 24px;
+  padding: 22px 20px 16px;
+  width: 230px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+#folder-overlay.open .folder-popup {
+  transform: translateY(-60%) scale(1);
+}
+
+.folder-popup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 14px;
+  width: 100%;
+  justify-items: center;
+}
+.folder-popup-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1b2e;
+  margin-top: 2px;
+}
+.folder-popup .app-label {
+  color: #1a1b2e;
+  text-shadow: none;
+}
+.folder-popup .icon-img {
+  width: 56px;
+  height: 56px;
+}
+</style>
+</head>
+<body>
+
+<!-- STATUS BAR -->
+<div id="statusbar">
+  <span class="sb-time" id="clock">22:30</span>
+  <div class="sb-right">
+    <!-- Signal -->
+    <svg viewBox="0 0 20 18">
+      <rect x="0"  y="12" width="3.5" height="6" rx="1" opacity="0.35"/>
+      <rect x="5"  y="8"  width="3.5" height="10" rx="1" opacity="0.6"/>
+      <rect x="10" y="4"  width="3.5" height="14" rx="1" opacity="0.8"/>
+      <rect x="15" y="0"  width="3.5" height="18" rx="1"/>
+    </svg>
+    <!-- WiFi -->
+    <svg viewBox="0 0 24 24">
+      <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+    </svg>
+    <!-- Battery % -->
+    <span class="sb-batt">69</span>
+    <!-- Battery icon -->
+    <svg viewBox="0 0 24 12" width="22" height="11">
+      <rect x="0.5" y="0.5" width="20" height="11" rx="2.5" stroke="#fff" stroke-width="1" fill="none"/>
+      <rect x="1.5" y="1.5" width="16" height="9" rx="2" fill="#fff"/>
+      <path d="M21.5 4v4a2 2 0 0 0 0-4z" fill="#fff"/>
+    </svg>
+  </div>
+</div>
+
+<!-- HOME SCREEN -->
+<div id="homescreen">
+  <div class="home-grid" id="home-grid"></div>
+</div>
+
+<!-- DOCK — no background whatsoever -->
+<div id="dock"></div>
+
+<!-- SINGLE NAV PILL — at very bottom, tapping opens drawer -->
+<div id="nav-pill" onclick="openDrawer()">
+  <div class="bar"></div>
+</div>
+
+<!-- APP DRAWER — bottom sheet with rounded top corners -->
+<div id="appdrawer">
+  <!-- Pill at top closes drawer -->
+  <div id="drawer-pill" onclick="closeDrawer()">
+    <div class="bar"></div>
+  </div>
+  <!-- Gap -->
+  <div class="drawer-gap"></div>
+  <!-- Search -->
+  <div id="search-wrap">
+    <svg viewBox="0 0 24 24">
+      <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+    </svg>
+    <input id="search-input" type="text" placeholder="Search apps" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  </div>
+  <!-- App grid -->
+  <div class="drawer-grid" id="drawer-grid">
+    <div id="no-results">No apps found</div>
+  </div>
+</div>
+
+<!-- FOLDER OVERLAY -->
+<div id="folder-overlay" onclick="closeFolder(event)">
+  <div class="folder-popup" id="folder-popup" onclick="event.stopPropagation()">
+    <div class="folder-popup-grid" id="folder-popup-grid"></div>
+    <div class="folder-popup-name" id="folder-popup-name"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ██████╗  █████╗ ████████╗ █████╗
+   CONFIGURATION — Edit everything here
+   ═══════════════════════════════════════════════════════════════
+
+   ICON TYPES:
+   ───────────
+   Image URL (best — use a real icon PNG/JPG):
+     icon: { type:'img', src:'https://...', bg:'#fff' }
+
+   Coloured circle with text initials:
+     icon: { type:'text', bg:'#25D366', text:'WA', color:'#fff' }
+
+   SVG shape:
+     icon: { type:'svg', bg:'#FF5500', svg:'<svg viewBox="0 0 24 24">...</svg>' }
+
+   HOW TO ADD AN APP:
+   ──────────────────
+   Copy any entry in APPS or DOCK_APPS, change name/url/icon.
+   Drawer is always auto-sorted A→Z.
+
+   HOW TO ADD A FOLDER:
+   ─────────────────────
+   Add a key to FOLDERS with apps array.
+   Then add { type:'folder', name:'YourFolder' } to HOME_ITEMS.
+
+   HOME GRID = 4 columns. { type:'empty' } = blank cell.
+═══════════════════════════════════════════════════════════════ */
+
+
+/* ═══════════════════════════
+   DOCK APPS (bottom 4)
+═══════════════════════════ */
+const DOCK_APPS = [
+  {
+    name: 'Phone', url: 'tel:',
+    icon: { type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" fill="#111"/></svg>` }
+  },
+  {
+    name: 'Messages', url: 'sms:',
+    icon: { type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" fill="#111"/></svg>` }
+  },
+  {
+    name: 'Contacts', url: 'contacts:',
+    icon: { type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#111"/></svg>` }
+  },
+  {
+    name: 'Camera', url: '#',
+    icon: { type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M9.4 3L7.4 5H4C2.9 5 2 5.9 2 7v13c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-3.4l-2-2H9.4zM12 18c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z" fill="#111"/></svg>` }
+  },
+];
+
+
+/* ═══════════════════════════
+   APP DRAWER (auto A→Z)
+═══════════════════════════ */
+const APPS = [
+  { name:'AirExplorer',     url:'https://airexplorer.net',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="25" fill="none" stroke="#555" stroke-width="5"/><circle cx="32" cy="32" r="11" fill="none" stroke="#555" stroke-width="5"/><circle cx="32" cy="32" r="4" fill="#555"/><line x1="32" y1="7" x2="32" y2="21" stroke="#555" stroke-width="5"/><line x1="32" y1="43" x2="32" y2="57" stroke="#555" stroke-width="5"/><line x1="7" y1="32" x2="21" y2="32" stroke="#555" stroke-width="5"/><line x1="43" y1="32" x2="57" y2="32" stroke="#555" stroke-width="5"/></svg>` } },
+
+  { name:'App Store',       url:'https://play.google.com/store',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z" fill="#333"/></svg>` } },
+
+  { name:'Auditor',         url:'https://attestation.app',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5L12 1z" fill="#222"/></svg>` } },
+
+  { name:'Beryl',           url:'#',
+    icon:{ type:'svg', bg:'#00C896',
+      svg:`<svg viewBox="0 0 24 24"><path d="M12 2l2.5 4h5l-2.5 4 2.5 4h-5L12 18l-2.5-4H4.5L7 10 4.5 6h5z" fill="#fff"/></svg>` } },
+
+  { name:'BFF',             url:'#',
+    icon:{ type:'svg', bg:'#F5C400',
+      svg:`<svg viewBox="0 0 48 48"><path d="M24 6C15.16 6 8 13.16 8 22s7.16 16 16 16 16-7.16 16-16S32.84 6 24 6zm0 6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6 2.69-6 6-6zm0 22.8c-5 0-9.42-2.56-12-6.44.06-3.98 8-6.16 12-6.16s11.94 2.18 12 6.16c-2.58 3.88-7 6.44-12 6.44z" fill="#222"/></svg>` } },
+
+  { name:'Bodycam',         url:'#',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.93 0 3.5 1.57 3.5 3.5S13.93 12 12 12s-3.5-1.57-3.5-3.5S10.07 5 12 5zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08s5.97 1.09 6 3.08c-1.29 1.94-3.5 3.22-6 3.22z" fill="#222"/></svg>` } },
+
+  { name:'Brave',           url:'https://brave.com',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 4.4 3.4 8.5 8 9.9 4.6-1.4 8-5.5 8-9.9V6L12 2z" fill="#FF5000"/><path d="M10 14l-2-2 1.4-1.4.6.6 4.6-4.6L16 8l-6 6z" fill="#fff"/></svg>` } },
+
+  { name:'Briar',           url:'https://briarproject.org',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2" fill="#2d7a2d"/><rect x="13" y="3" width="8" height="8" rx="2" fill="#2d7a2d"/><rect x="3" y="13" width="8" height="8" rx="2" fill="#2d7a2d"/><rect x="13" y="13" width="8" height="8" rx="2" fill="#2d7a2d"/></svg>` } },
+
+  { name:'Button Mapper',   url:'#',
+    icon:{ type:'svg', bg:'#1976D2',
+      svg:`<svg viewBox="0 0 24 24" fill="#fff"><rect x="2" y="2" width="9" height="9" rx="2"/><rect x="2" y="13" width="9" height="9" rx="2" opacity=".55"/><path d="M14 12l-3-3v2H2v2h9v2z"/><rect x="13" y="2" width="9" height="9" rx="2" opacity=".35"/></svg>` } },
+
+  { name:'Calculator',      url:'#',
+    icon:{ type:'svg', bg:'#1C1C1E',
+      svg:`<svg viewBox="0 0 24 24"><rect x="3" y="2" width="18" height="20" rx="2" fill="#1C1C1E"/><rect x="5" y="4" width="14" height="5" rx="1" fill="#4CAF50"/><circle cx="7.5" cy="14" r="1.5" fill="#fff"/><circle cx="12" cy="14" r="1.5" fill="#fff"/><circle cx="16.5" cy="14" r="1.5" fill="#fff"/><circle cx="7.5" cy="18.5" r="1.5" fill="#fff"/><circle cx="12" cy="18.5" r="1.5" fill="#fff"/><circle cx="16.5" cy="18.5" r="1.5" fill="#F44336"/></svg>` } },
+
+  { name:'Camera',          url:'#',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M9.4 3L7.4 5H4C2.9 5 2 5.9 2 7v13c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-3.4l-2-2H9.4zM12 18c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z" fill="#111"/></svg>` } },
+
+  { name:'Ceno',            url:'https://censorship.no',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fff" stroke="#e5e5e5" stroke-width="0.5"/><circle cx="12" cy="12" r="3.5" fill="#EA4335"/><path d="M12 2C6.48 2 2 6.48 2 12h2.4C4.4 7.8 7.8 4.4 12 4.4V2z" fill="#4285F4"/><path d="M22 12c0 5.52-4.48 10-10 10v-2.4c4.2 0 7.6-3.4 7.6-7.6H22z" fill="#34A853"/><path d="M2 12c0 2.6 1.05 5 2.74 6.74l1.7-1.7A7.6 7.6 0 0 1 4.4 12H2z" fill="#FBBC05"/></svg>` } },
+
+  { name:'Cleo',            url:'#',
+    icon:{ type:'text', bg:'#3D1A0F', text:'cleo', color:'#fff' } },
+
+  { name:'Clock',           url:'#',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="#111"/></svg>` } },
+
+  { name:'Contacts',        url:'contacts:',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#111"/></svg>` } },
+
+  { name:'Cryptomator',     url:'https://cryptomator.org',
+    icon:{ type:'svg', bg:'#f0f0f0',
+      svg:`<svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" fill="#666"/></svg>` } },
+
+  { name:'Cx File Expl.',   url:'#',
+    icon:{ type:'svg', bg:'#1565C0',
+      svg:`<svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="#fff"/></svg>` } },
+
+  { name:'DAVx\u2075',      url:'https://www.davx5.com',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#4CAF50"/><text x="24" y="30" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold" font-family="sans-serif">DAVx⁵</text></svg>` } },
+
+  { name:'Elevate',         url:'https://elevateapp.com',
+    icon:{ type:'svg', bg:'#2979FF',
+      svg:`<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#2979FF"/><path d="M16 36l8-20 8 20H16z" fill="#fff"/></svg>` } },
+
+  { name:'Empty Folder',    url:'#',
+    icon:{ type:'svg', bg:'#1565C0',
+      svg:`<svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="#fff"/><rect x="8" y="12.5" width="8" height="2" rx="1" fill="#1565C0"/></svg>` } },
+
+  { name:'Ente Photos',     url:'https://ente.io',
+    icon:{ type:'svg', bg:'#00A86B',
+      svg:`<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#00A86B"/><text x="24" y="35" text-anchor="middle" font-size="30" fill="#fff" font-family="Georgia,serif" font-style="italic">e</text></svg>` } },
+
+  { name:'FairScan',        url:'#',
+    icon:{ type:'svg', bg:'#00A86B',
+      svg:`<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke="#fff" stroke-width="2" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="#fff" stroke-width="2" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="#fff" stroke-width="2" fill="none"/><rect x="14" y="14" width="7" height="7" rx="1" fill="#fff"/></svg>` } },
+
+  { name:'Fildo',           url:'#',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#fff" stroke="#eee" stroke-width="1"/><ellipse cx="24" cy="30" rx="9" ry="11" fill="#C8834A"/><ellipse cx="24" cy="19" rx="5" ry="6" fill="#C8834A"/><circle cx="24" cy="19" r="3.2" fill="#2C1A0A"/></svg>` } },
+
+  { name:'Files',           url:'#',
+    icon:{ type:'svg', bg:'#212121',
+      svg:`<svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="#fff"/></svg>` } },
+
+  { name:'Find My Device',  url:'#',
+    icon:{ type:'svg', bg:'#fff',
+      svg:`<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#222"/></svg>` } },
+
+  { name:'Firefox',         url:'https://firefox.com',
+    icon:{ type:'svg', bg:'#FF6611',
+      svg:`<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#FF7700"/><circle cx="24" cy="24" r="13" fill="#FFD000"/><circle cx="24" cy="24" r="6" fill="#FF4400"/></svg>` } },
+
+  { name:'Gallery',         url:'#',
+    icon:{ type:'svg', bg:'#212121',
+      svg:`<svg viewBox="0 0 24 24"><path d="M21 3H3C2 3 1 4 1 5v14c0 1.1.9 2 2 2h18c1 0 2-1 2-2V5c0-1-1-2-2-2zM5 17l3.5-4.5 2.5 3.01L14.5 11l4.5 6H5z" fill="#fff"/></svg>` } },
+
+  { name:'Wear OS',         url:'#',
+    icon:{ type:'text', bg:'#1A73E8', text:'Wear', color:'#fff' } },
+];
+
+
+/* ═══════════════════════════
+   FOLDERS
+═══════════════════════════ */
+const FOLDERS = {
+  Travel: { apps: [
+    { name:'Kiwix',        url:'https://kiwix.org',
+      icon:{ type:'svg', bg:'#000', svg:`<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#000"/><circle cx="24" cy="24" r="10" fill="#fff"/><circle cx="24" cy="24" r="4" fill="#000"/></svg>` } },
+    { name:'Translator',   url:'https://translate.google.com',
+      icon:{ type:'svg', bg:'#FF8C00', svg:`<svg viewBox="0 0 24 24" fill="#fff"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>` } },
+    { name:'what3words',   url:'https://what3words.com',
+      icon:{ type:'svg', bg:'#E11E25', svg:`<svg viewBox="0 0 48 48"><text x="24" y="33" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff" font-family="sans-serif">///</text></svg>` } },
+    { name:'Organic Maps', url:'https://organicmaps.app',
+      icon:{ type:'svg', bg:'#1B5E20', svg:`<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#fff"/></svg>` } },
+  ]},
+  VPN: { apps: [
+    { name:'Mullvad',      url:'https://mullvad.net',
+      icon:{ type:'svg', bg:'#FF9800', svg:`<svg viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>` } },
+    { name:'ProtonVPN',    url:'https://protonvpn.com',
+      icon:{ type:'svg', bg:'#6D3BBF', svg:`<svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6L12 2z" fill="#fff"/></svg>` } },
+    { name:'Shadowsocks',  url:'#',
+      icon:{ type:'svg', bg:'#1565C0', svg:`<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" fill="#fff"/></svg>` } },
+    { name:'Streisand',    url:'#',
+      icon:{ type:'svg', bg:'#2E7D32', svg:`<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#fff"/></svg>` } },
+  ]},
+  Proton: { apps: [
+    { name:'Proton Cal.',  url:'https://calendar.proton.me',
+      icon:{ type:'svg', bg:'#6D3BBF', svg:`<svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z" fill="#fff"/></svg>` } },
+    { name:'Proton Drive', url:'https://drive.proton.me',
+      icon:{ type:'svg', bg:'#4A6CF7', svg:`<svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#fff"/></svg>` } },
+    { name:'Proton Mail',  url:'https://mail.proton.me',
+      icon:{ type:'svg', bg:'#6D3BBF', svg:`<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" fill="#fff"/></svg>` } },
+    { name:'Proton Pass',  url:'https://pass.proton.me',
+      icon:{ type:'svg', bg:'#4A6CF7', svg:`<svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" fill="#fff"/></svg>` } },
+  ]},
+  Work: { apps: [
+    { name:'TimeClock',    url:'#',
+      icon:{ type:'svg', bg:'#FF6F00', svg:`<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm.5 13H11v-6l5.25 3.15-.75 1.23-3-1.78V15z" fill="#fff"/></svg>` } },
+    { name:'Bodycam',      url:'#',
+      icon:{ type:'svg', bg:'#212121', svg:`<svg viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="9" r="3.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#fff" stroke-width="2" fill="none"/></svg>` } },
+    { name:'Guardian',     url:'#',
+      icon:{ type:'svg', bg:'#1565C0', svg:`<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5L12 1z" fill="#fff"/></svg>` } },
+    { name:'Uptime',       url:'#',
+      icon:{ type:'svg', bg:'#00897B', svg:`<svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z" fill="#fff"/></svg>` } },
+  ]},
+  Plex: { apps: [
+    { name:'Plex',         url:'https://plex.tv',
+      icon:{ type:'svg', bg:'#E5A00D', svg:`<svg viewBox="0 0 24 24"><path d="M9.5 6.5l7 5.5-7 5.5V6.5z" fill="#000"/></svg>` } },
+    { name:'Plexamp',      url:'https://plexamp.com',
+      icon:{ type:'svg', bg:'#E5A00D', svg:`<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="#000"/></svg>` } },
+    { name:'Plex DASH',    url:'#',
+      icon:{ type:'svg', bg:'#2a2a2a', svg:`<svg viewBox="0 0 24 24"><path d="M9.5 6.5l7 5.5-7 5.5V6.5z" fill="#E5A00D"/></svg>` } },
+    { name:'Gyroflow',     url:'#',
+      icon:{ type:'svg', bg:'#111', svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="none" stroke="#E5A00D" stroke-width="2"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="#E5A00D" stroke-width="2"/></svg>` } },
+  ]},
+  Safety: { apps: [
+    { name:'Find Device',  url:'#',
+      icon:{ type:'svg', bg:'#fff', svg:`<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#222"/></svg>` } },
+    { name:'Cryptomator',  url:'https://cryptomator.org',
+      icon:{ type:'svg', bg:'#f0f0f0', svg:`<svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" fill="#666"/></svg>` } },
+    { name:'Auditor',      url:'https://attestation.app',
+      icon:{ type:'svg', bg:'#fff', svg:`<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5L12 1z" fill="#222"/></svg>` } },
+    { name:'Wasted',       url:'#',
+      icon:{ type:'svg', bg:'#333', svg:`<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="#fff"/></svg>` } },
+  ]},
+  Social: { apps: [
+    { name:'WhatsApp',     url:'https://web.whatsapp.com',
+      icon:{ type:'svg', bg:'#25D366', svg:`<svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.122 1.523 5.86L0 24l6.29-1.649A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.006-1.373l-.36-.213-3.5.918.934-3.418-.234-.371A9.818 9.818 0 1 1 12 21.818z"/></svg>` } },
+    { name:'Briar',        url:'https://briarproject.org',
+      icon:{ type:'svg', bg:'#fff', svg:`<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2" fill="#2d7a2d"/><rect x="13" y="3" width="8" height="8" rx="2" fill="#2d7a2d"/><rect x="3" y="13" width="8" height="8" rx="2" fill="#2d7a2d"/><rect x="13" y="13" width="8" height="8" rx="2" fill="#2d7a2d"/></svg>` } },
+    { name:'Moon+',        url:'#',
+      icon:{ type:'svg', bg:'#1a1a3e', svg:`<svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" fill="#C0C0FF"/></svg>` } },
+    { name:'Element',      url:'https://element.io',
+      icon:{ type:'svg', bg:'#0DBD8B', svg:`<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="#fff"/></svg>` } },
+  ]},
+  CLOUD: { apps: [
+    { name:'Nextcloud',    url:'https://nextcloud.com',
+      icon:{ type:'svg', bg:'#0082C9', svg:`<svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#fff"/></svg>` } },
+    { name:'Syncthing',    url:'https://syncthing.net',
+      icon:{ type:'svg', bg:'#0082C9', svg:`<svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" fill="#fff"/></svg>` } },
+    { name:'Android Emu',  url:'#',
+      icon:{ type:'svg', bg:'#3DDC84', svg:`<svg viewBox="0 0 24 24" fill="#fff"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zM15.53 2.16l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C7.08 3.04 6 4.63 6 6.5h12c0-1.87-1.08-3.46-2.47-4.34zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg>` } },
+    { name:'RClone',       url:'#',
+      icon:{ type:'svg', bg:'#0082C9', svg:`<svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#fff"/></svg>` } },
+  ]},
+  'App Drawer': { apps: [
+    { name:'Tes',          url:'#', icon:{ type:'text', bg:'#888', text:'T', color:'#fff' } },
+    { name:'Brave',        url:'https://brave.com', icon:{ type:'svg', bg:'#fff', svg:`<svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 4.4 3.4 8.5 8 9.9 4.6-1.4 8-5.5 8-9.9V6L12 2z" fill="#FF5000"/></svg>` } },
+  ]},
+};
+
+
+/* ═══════════════════════════
+   HOME SCREEN LAYOUT (4 cols)
+═══════════════════════════ */
+const HOME_ITEMS = [
+  { type:'folder', name:'Travel'     },
+  { type:'folder', name:'VPN'        },
+  { type:'folder', name:'Proton'     },
+  { type:'empty'                     },
+  { type:'folder', name:'Work'       },
+  { type:'empty'                     },
+  { type:'folder', name:'Plex'       },
+  { type:'folder', name:'Safety'     },
+  { type:'folder', name:'Social'     },
+  { type:'empty'                     },
+  { type:'folder', name:'CLOUD'      },
+  { type:'folder', name:'App Drawer' },
+];
+
+
+/* ═══════════════════════════════════════════════════
+   ENGINE
+═══════════════════════════════════════════════════ */
+
+function buildIcon(def, size) {
+  const el = document.createElement('div');
+  el.className = 'icon-img';
+  el.style.width = size; el.style.height = size;
+  el.style.background = def.bg || '#fff';
+  if (def.type === 'img') {
+    const img = document.createElement('img');
+    img.src = def.src;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+    el.appendChild(img);
+  } else if (def.type === 'svg') {
+    el.innerHTML = def.svg;
+    const s = el.querySelector('svg');
+    if (s) { s.style.cssText = 'width:60%;height:60%;display:block;flex-shrink:0;'; }
+  } else if (def.type === 'text') {
+    Object.assign(el.style, { display:'flex', alignItems:'center', justifyContent:'center',
+      fontSize:'12px', fontWeight:'700', color: def.color||'#fff', letterSpacing:'-0.3px' });
+    el.textContent = def.text;
+  }
+  return el;
+}
+
+function buildAppIcon(app, sz, darkLabel) {
+  const a = document.createElement('a');
+  a.className = 'app-icon';
+  a.href = app.url || '#';
+  const u = app.url || '';
+  if (u && u !== '#' && !u.startsWith('tel') && !u.startsWith('sms') && !u.startsWith('contacts'))
+    a.target = '_blank', a.rel = 'noopener noreferrer';
+  a.appendChild(buildIcon(app.icon, sz || '58px'));
+  const lbl = document.createElement('span');
+  lbl.className = 'app-label';
+  if (darkLabel) { lbl.style.color = '#18192c'; lbl.style.textShadow = 'none'; }
+  lbl.textContent = app.name;
+  a.appendChild(lbl);
+  return a;
+}
+
+function buildFolderMini(apps) {
+  const b = document.createElement('div');
+  b.className = 'folder-bubble';
+  apps.slice(0,4).forEach(app => {
+    const m = document.createElement('div');
+    m.className = 'folder-mini';
+    m.style.background = app.icon.bg || '#eee';
+    if (app.icon.type === 'svg') {
+      m.innerHTML = app.icon.svg;
+      const s = m.querySelector('svg');
+      if (s) s.style.cssText = 'width:100%;height:100%;display:block;';
+    } else if (app.icon.type === 'img') {
+      const img = document.createElement('img');
+      img.src = app.icon.src;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+      m.appendChild(img);
+    } else if (app.icon.type === 'text') {
+      Object.assign(m.style, { display:'flex', alignItems:'center', justifyContent:'center',
+        fontSize:'8px', fontWeight:'700', color: app.icon.color||'#fff' });
+      m.textContent = app.icon.text;
+    }
+    b.appendChild(m);
+  });
+  while (b.children.length < 4)
+    b.appendChild(Object.assign(document.createElement('div'), { className:'folder-mini' }));
+  return b;
+}
+
+function renderHome() {
+  const grid = document.getElementById('home-grid');
+  grid.innerHTML = '';
+  HOME_ITEMS.forEach(item => {
+    if (item.type === 'empty') { grid.appendChild(document.createElement('div')); return; }
+    const folder = FOLDERS[item.name] || { apps:[] };
+    const wrap = document.createElement('div');
+    wrap.className = 'folder-icon';
+    wrap.appendChild(buildFolderMini(folder.apps));
+    const lbl = document.createElement('span');
+    lbl.className = 'folder-label';
+    lbl.textContent = item.name;
+    wrap.appendChild(lbl);
+    wrap.addEventListener('click', () => openFolder(item.name));
+    grid.appendChild(wrap);
+  });
+}
+
+function renderDock() {
+  const dock = document.getElementById('dock');
+  dock.innerHTML = '';
+  DOCK_APPS.forEach(app => dock.appendChild(buildAppIcon(app, '58px', false)));
+}
+
+const sortedApps = [...APPS].sort((a,b) => a.name.localeCompare(b.name));
+
+function renderDrawer(q) {
+  const grid = document.getElementById('drawer-grid');
+  const noRes = document.getElementById('no-results');
+  Array.from(grid.querySelectorAll('.app-icon')).forEach(el => el.remove());
+  const query = (q||'').trim().toLowerCase();
+  const list = query ? sortedApps.filter(a => a.name.toLowerCase().includes(query)) : sortedApps;
+  if (!list.length) { noRes.style.display = 'block'; return; }
+  noRes.style.display = 'none';
+  list.forEach(app => grid.insertBefore(buildAppIcon(app, '58px', true), noRes));
+}
+
+function openFolder(name) {
+  const folder = FOLDERS[name];
+  if (!folder) return;
+  const grid = document.getElementById('folder-popup-grid');
+  grid.innerHTML = '';
+  document.getElementById('folder-popup-name').textContent = name;
+  folder.apps.forEach(app => {
+    const ic = buildAppIcon(app, '56px', true);
+    grid.appendChild(ic);
+  });
+  document.getElementById('folder-overlay').classList.add('open');
+}
+function closeFolder(e) {
+  document.getElementById('folder-overlay').classList.remove('open');
+}
+
+function openDrawer() {
+  document.getElementById('appdrawer').classList.add('open');
+  document.getElementById('search-input').value = '';
+  renderDrawer('');
+}
+function closeDrawer() {
+  document.getElementById('appdrawer').classList.remove('open');
+  document.getElementById('search-input').blur();
+}
+
+document.getElementById('search-input').addEventListener('input', function() {
+  renderDrawer(this.value);
+});
+
+// Clock
+function tick() {
+  const n = new Date();
+  document.getElementById('clock').textContent =
+    String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+}
+tick(); setInterval(tick, 15000);
+
+// ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeFolder(); closeDrawer(); }
+});
+
+// PWA: Register a service worker via Blob URL (required by Brave/Chrome for
+// "Install app" — without a SW it only offers "Add shortcut").
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'launcher-v1';
+    self.addEventListener('install', e => {
+      self.skipWaiting();
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html'])));
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(clients.claim());
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(
+        caches.match(e.request).then(r => r || fetch(e.request))
+      );
+    });
+  `;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl  = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl, { scope: './' }).catch(() => {});
+}
+
+// Init
+renderHome();
+renderDock();
+renderDrawer('');
+</script>
+</body>
+</html>
