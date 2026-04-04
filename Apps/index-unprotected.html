@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Launcher">
+<meta name="apple-mobile-web-app-title" content="Pixel Launcher">
 <meta name="theme-color" content="#000000">
 <title>Pixel Launcher</title>
 
@@ -28,7 +28,7 @@
     return c.toDataURL('image/png');
   }
   var i192=makePNG(192), i512=makePNG(512);
-  var m={ name:'Pixel Launcher', short_name:'Launcher', start_url:'./', scope:'./',
+  var m={ name:'Pixel Launcher', short_name:'Pixel Launcher', start_url:'./', scope:'./',
     display:'standalone', orientation:'portrait-primary',
     background_color:'#000000', theme_color:'#000000',
     icons:[
@@ -560,18 +560,25 @@ const APPS = [
 ───────────────────────────────────────────────── */
 const FOLDERS = {
 
-  Travel: { apps: [
-    { name:'Kiwix',        url:'https://kiwix.org',            icon:'https://www.google.com/s2/favicons?sz=128&domain=kiwix.org' },
-    { name:'Translator',   url:'https://translate.google.com', icon:'https://www.google.com/s2/favicons?sz=128&domain=translate.google.com' },
-    { name:'what3words',   url:'https://what3words.com',       icon:'https://www.google.com/s2/favicons?sz=128&domain=what3words.com' },
-    { name:'Organic Maps', url:'https://organicmaps.app',      icon:'https://www.google.com/s2/favicons?sz=128&domain=organicmaps.app' },
+  Torrenting: { apps: [
+    { name:'IPTorrents',        url:'https://iptorrents.com/',            icon:'https://www.google.com/s2/favicons?sz=128&domain=kiwix.org' },
+    { name:'TorrentLeech',   url:'https://torrentleech.org/', icon:'https://www.google.com/s2/favicons?sz=128&domain=translate.google.com' },
+    { name:'Torrenting',   url:'https://torrenting.com/',       icon:'https://www.google.com/s2/favicons?sz=128&domain=what3words.com' },
+    { name:'TorrentDay', url:'https://torrentday.com/',      icon:'https://www.google.com/s2/favicons?sz=128&domain=organicmaps.app' },
+    { name:'EXT', url:'https://ext.to',      icon:'https://www.google.com/s2/favicons?sz=128&domain=organicmaps.app' },
+    { name:'PirateBay', url:'https://thepiratebay.org',      icon:'https://www.google.com/s2/favicons?sz=128&domain=organicmaps.app' },
+    { name:'1337x', url:'https://www.1337x.tw',      icon:'https://www.google.com/s2/favicons?sz=128&domain=organicmaps.app' },
+    { name:'EZTV', url:'https://eztvx.to',      icon:'https://www.google.com/s2/favicons?sz=128&domain=organicmaps.app' },
+    { name:'LimeTorrent', url:'https://limetorrents.lol',      icon:'https://www.google.com/s2/favicons?sz=128&domain=organicmaps.app' },
+    { name:'RARBG', url:'https://rarbg.to',      icon:'https://www.google.com/s2/favicons?sz=128&domain=organicmaps.app' },
+    { name:'Torlock', url:'https://torlock.com',      icon:'https://www.google.com/s2/favicons?sz=128&domain=organicmaps.app' },
+    { name:'Magnetz', url:'https://magnetz.eu',      icon:'https://www.google.com/s2/favicons?sz=128&domain=organicmaps.app' },
+
   ]},
 
-  VPN: { apps: [
-    { name:'Mullvad',      url:'https://mullvad.net',          icon:'https://www.google.com/s2/favicons?sz=128&domain=mullvad.net' },
-    { name:'ProtonVPN',    url:'https://protonvpn.com',        icon:'https://www.google.com/s2/favicons?sz=128&domain=protonvpn.com' },
-    { name:'Shadowsocks',  url:'#',                            icon:{ color:'#1565C0', text:'SS' } },
-    { name:'Streisand',    url:'#',                            icon:{ color:'#2E7D32', text:'St' } },
+  Learning: { apps: [
+    { name:'Duolingo',  url:'https://www.duolingo.com/?isLoggingIn=true', icon:'https://play-lh.googleusercontent.com/tw_coGKgk1K_zO-Ypf9zBKV1s-KT3dYN1MIUxIqtnbfmON5x_YmuoAr31gE4oSfJHNtA-aStTd-qe9R8S6NVyA=w240-h480-rw' },
+    { name:'Qlango',    url:'https://app.qlango.com/#/login',        icon:'https://play-lh.googleusercontent.com/2ScOWxIrqET0jsJGDHt4fQ4R0nLRjtQW8UZAoU8X0YPfNEKrNpSg_Pg0Luat1oKFQRc=w240-h480-rw' },
   ]},
 
   Proton: { apps: [
@@ -635,8 +642,8 @@ const FOLDERS = {
    { type:'empty' }  ← leaves a blank cell
 ───────────────────────────────────────────────── */
 const HOME_ITEMS = [
-  { type:'folder', name:'Travel'     },
-  { type:'folder', name:'VPN'        },
+  { type:'folder', name:'Torrenting' },
+  { type:'folder', name:'Learning'   },
   { type:'folder', name:'Proton'     },
   { type:'empty'                     },
   { type:'folder', name:'Work'       },
